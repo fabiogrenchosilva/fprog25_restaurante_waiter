@@ -9,21 +9,13 @@ Criado por:
 
 from src.packages.graphics import *
 
-class Table():
+class Table(Rectangle):
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple):
+        Rectangle.__init__(self, Point(p1[0], p1[1]), Point(p2[0], p2[1]))
 
-        self.rectangle = Rectangle(Point(p1[0], p1[1]), Point(p2[0], p2[1]))
-        self.win = win
+        self.setWidth(0)
+        self.setFill(color_rgb(25, 25, 225))
 
-        self.rectangle.setWidth(0)
-        self.rectangle.setFill(color_rgb(25, 25, 225))
-
-    
-    def draw(self):
-        self.rectangle.draw(self.win)
-
-    def undraw(self):
-        self.rectangle.undraw()
 
 
     

@@ -15,7 +15,3 @@ class Table(Rectangle):
 
         self.setWidth(0)
         self.setFill(color_rgb(25, 25, 225))
-
-
-
-    

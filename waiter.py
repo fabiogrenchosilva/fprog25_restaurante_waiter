@@ -32,20 +32,14 @@ class Waiter(Circle):
     
     def __move_to_point(self, point: tuple, dt: float):
         point = (int(point[0]*10), int(point[1]*8))
-        x_diff, y_diff, distance = distance_p2p(point, self.current_pos)
-        if distance > 2:
-            x_norm = x_diff / distance * self.velocity * dt
-            y_norm = y_diff / distance * self.velocity * dt
-
-            self.move(x_norm, y_norm)
-            self.current_pos = (self.current_pos[0]+x_norm, self.current_pos[1]+y_norm)
-
-            self.current_grid_pos = (int((self.current_pos[0]+x_norm)/(WIN_WIDTH/10)*10), int((self.current_pos[1]+y_norm)/(WIN_HEIGHT/10)*10))
-
-        else:
-            self.current_pos = point 
         
-        print(self.current_grid_pos, self.current_pos)
+        dx = point[0] - self.current_pos[0] 
+        dy = point[1] - self.current_pos[1]
+
+        self.move(dx, dy)
+
+        self.current_pos = point
+        self.current_grid_pos = (int(point[0]/(WIN_WIDTH/10)*10), int(point[1]/(WIN_HEIGHT/10)*10))
     
     def __bfs(self, grid, start, end):
         rows, cols = len(grid), len(grid[0])
@@ -69,7 +63,6 @@ class Waiter(Circle):
             r, c = queue.popleft()
 
             if (r, c) == end: 
-                print("FOUND IT")
                 rect = Rectangle(Point(r*WIN_WIDTH/100, c*WIN_HEIGHT/100), Point((r+1)*WIN_WIDTH/100, (c+1)*WIN_HEIGHT/100))
                 rect.setWidth(0)
                 rect.setFill(color_rgb(255, 0, 0))
@@ -113,12 +106,7 @@ class Waiter(Circle):
         if self.pos_to_go:
             self.__move_to_point(self.pos_to_go[0], dt)
         
-            self.pos_to_go.pop(0)
-            #print(self.pos_to_go)
-        
-        
-    
-
+            self.pos_to_go.pop(0)   
 
 def distance_p2p(p1: tuple, p2: tuple) -> tuple:
     x_diff = p1[0] - p2[0]

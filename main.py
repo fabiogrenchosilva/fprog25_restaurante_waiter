@@ -77,12 +77,12 @@ class Window(GraphWin):
                     case "Table":            
                         table = Table(self, p1, p2)
                         tables.append(table)
-                        self.__astart_set_obstacle(p1, p2)
+                        self.__astart_set_obstacle((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
                     case "Obstacle":
                         obstacle = Obstacle(self, p1, p2)
                         obstacles.append(obstacle)
-                        self.__astart_set_obstacle(p1, p2)
+                        self.__astart_set_obstacle((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
                     case "Dock":
                         dock = Dock(self, p1, p2)
@@ -93,7 +93,7 @@ class Window(GraphWin):
                     
                     case _:
                         raise ValueError(f'Elemento "{elements[0]}" em "{ficheiro_sala}" desconhecido')
-
+        file.close()
         return (tables, obstacles, pratos, docks)
             
     def __generate_room(self) -> None:

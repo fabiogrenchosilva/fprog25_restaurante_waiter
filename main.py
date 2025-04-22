@@ -26,38 +26,23 @@ class Window(GraphWin):
         self.obstacles = []
         self.docks = []
 
-        self.tables, self.obstacles, self.pratos, self.docks = self.load_file("src/salas/sala01.txt")
-        self.generate_room()
-
-        # Load waiter class
-        self.waiter = Waiter(self, self.relative_to_window_coords((0.5, 0.5)))
-        self.waiter.draw(self)
-
-        """
-        for i in range(100):
-            for j in range(100):
-                Rectangle(Point(i*WIN_WIDTH/100, j*WIN_HEIGHT/100), Point((i+1)*WIN_WIDTH/100, (j+1)*WIN_HEIGHT/100)).draw(self)"""
-        
         self.restaurant_grid = [[0 for _ in range(100)] for _ in range(100)]
 
-        p1 = (19, 20)
-        p2 = (999, 500)
+        self.tables, self.obstacles, self.pratos, self.docks = self.__load_file("src/salas/sala01.txt")
+        self.__generate_room()
 
-        for i in range(int(p1[0]/100*10), int(p2[0]/100*10)+1):
-            for j in range(int(p1[1]/100*10), int(p2[1]/100*10)+1):
+        # Load waiter class
+        self.waiter = Waiter(self, self.relative_to_window_coords((0.5, 0.5)), self.restaurant_grid)
+        self.waiter.draw(self)
+
+        # Debug mode
+        self.debug_mode = False
+        self.debug_elements = []
+    
+    def __astart_set_obstacle(self, p1, p2):
+        for i in range(int(p1[0]/(WIN_WIDTH/10)*10), int(p2[0]/(WIN_WIDTH/10)*10)+1):
+            for j in range(int(p1[1]/(WIN_HEIGHT/10)*10), int(p2[1]/(WIN_HEIGHT/10)*10)+1):
                 self.restaurant_grid[i][j] = 1
-        
-        for i in range(100):
-            for j in range(100):
-                if self.restaurant_grid[i][j] == 1:
-                    rect = Rectangle(Point(i*WIN_WIDTH/100, j*WIN_HEIGHT/100), Point((i+1)*WIN_WIDTH/100, (j+1)*WIN_HEIGHT/100))
-                    rect.setFill(color_rgb(0, 0, 0))
-                    rect.draw(self)
-                else:
-                    rect = Rectangle(Point(i*WIN_WIDTH/100, j*WIN_HEIGHT/100), Point((i+1)*WIN_WIDTH/100, (j+1)*WIN_HEIGHT/100))
-                    rect.setWidth(0)
-                    rect.draw(self)
-
     
     # Function to change relative coords to window coords
     def relative_to_window_coords(self, point) -> tuple:
@@ -66,7 +51,7 @@ class Window(GraphWin):
 
         return (x_pos, y_pos)
     
-    def load_file(self, ficheiro_sala: str) -> tuple:
+    def __load_file(self, ficheiro_sala: str) -> tuple:
         file = open(ficheiro_sala, 'r')
 
         tables = []
@@ -92,10 +77,12 @@ class Window(GraphWin):
                     case "Table":            
                         table = Table(self, p1, p2)
                         tables.append(table)
-                    
+                        self.__astart_set_obstacle(p1, p2)
+
                     case "Obstacle":
                         obstacle = Obstacle(self, p1, p2)
                         obstacles.append(obstacle)
+                        self.__astart_set_obstacle(p1, p2)
 
                     case "Dock":
                         dock = Dock(self, p1, p2)
@@ -109,7 +96,7 @@ class Window(GraphWin):
 
         return (tables, obstacles, pratos, docks)
             
-    def generate_room(self) -> None:
+    def __generate_room(self) -> None:
         for table in self.tables:
             table.draw(self)
 
@@ -121,24 +108,41 @@ class Window(GraphWin):
 
         self.pratos.draw(self)
 
-    def check_colision(self):
-        pass
+    def __debug_mode(self) -> None:
+        self.debug_mode = not self.debug_mode
+        print(f"Debug mode was setted to: {self.debug_mode}")
+
+        for element in self.debug_elements:
+            element.undraw()
+            del element
+        if self.debug_mode:
+            for i in range(100):
+                for j in range(100):
+                    if self.restaurant_grid[i][j] == 1:
+                        #print(i, j, i*WIN_WIDTH/100, j*WIN_HEIGHT/100)
+                        rect = Rectangle(Point(i*WIN_WIDTH/100, j*WIN_HEIGHT/100), Point((i+1)*WIN_WIDTH/100, (j+1)*WIN_HEIGHT/100))
+                        #rect.setFill(color_rgb(0, 0, 0))
+                        rect.draw(self)
+                        self.debug_elements.append(rect)
 
     def main_loop(self) -> bool:
         last_time = time.time()
         while True:
             try:
+                ####################
+                ## Delta time code #
+                ####################
                 current_time = time.time()
                 dt = current_time - last_time
                 last_time = current_time
+                ####################
 
                 key = self.checkKey()
                 po = self.checkMouse()
                 if po:
                     self.waiter.move_to((po.x, po.y))
-                if key:
-                    self.waiter.Move(key)
-                    print(key)
+                if key == "F12":
+                    self.__debug_mode()
                 
 
                 if self.isClosed():

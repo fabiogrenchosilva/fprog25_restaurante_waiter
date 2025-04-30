@@ -1,7 +1,28 @@
 # Sala 0.1
 # Grupo 46
 
+# Config
+* WIN_WIDTH 1000
+* WIN_HEIGHT 800
+
+* GRID_WIDTH 100
+* GRID_HEIGHT 100
+
+* WAITER_RADIUS 25
+* WAITER_INIT_POS_X 0.5
+* WAITER_INIT_POS_Y 0.5
+
+
 # Object | X Position | Y Position | Width | Height
+# Obstacles
+Obstacle 40/150 20/150 4/150 104/150
+Obstacle 106/150 20/150 4/150 104/150
+
+# Saida pratos
+Pratos 62/150 0 26/150 10/150
+
+# Docks
+Dock 88/150 0 10/150 10/150
 
 
 # Tables
@@ -20,15 +41,3 @@ Table 88/150 96/150 18/150 14/150
 Table 110/150 40/150 18/150 14/150
 Table 110/150 68/150 18/150 14/150
 Table 110/150 96/150 18/150 14/150
-
-
-# Obstacles
-Obstacle 40/150 20/150 4/150 104/150
-Obstacle 106/150 20/150 4/150 104/150
-
-# Saida pratos
-Pratos 62/150 0 26/150 10/150
-
-# Docks
-Dock 88/150 0 10/150 10/150
-

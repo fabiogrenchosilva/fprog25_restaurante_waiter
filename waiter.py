@@ -22,13 +22,35 @@ class Waiter(Circle):
         self.setWidth(1)
         self.setFill(color_rgb(255, 0, 0))
 
-        #self.move_to((40, 60))
 
-    def move_to(self, point: tuple):
+    def move_to(self, point: tuple, table=False):
         end = (int(point[0]/(WIN_WIDTH/10)*10), int(point[1]/(WIN_HEIGHT/10)*10))
+        if table:
+            end = self.__find_point(point)
+        
         path = self.__bfs(self.grid, self.current_grid_pos, end)
         self.pos_to_go = path
 
+
+    def __find_point(self, point: tuple):
+        point = (int(point[0]/(WIN_WIDTH/10)*10), int(point[1]/(WIN_HEIGHT/10)*10))
+        directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+        
+        dist = 4000 #Just a large number
+        point_finded = (0, 0)
+        for dir in directions:
+            x, y = point[0], point[1]
+            find = False
+            while not find:
+                x, y = x+dir[0], y+dir[1]
+                if self.grid[x][y] == 0:
+                    find = True
+                    dist_to_p = distance_p2p((x, y), point)[2]
+                    if dist_to_p < dist:
+                        dist = dist_to_p
+                        point_finded = (x, y)
+        
+        return point_finded
     
     def __move_to_point(self, point: tuple, dt: float):
         point = (int(point[0]*10), int(point[1]*8))
@@ -77,7 +99,6 @@ class Waiter(Circle):
                         visited[nr][nc] = True
                         parent[nr][nc] = (r, c)
                         queue.append((nr, nc))
-                        
 
                         #rect = Rectangle(Point(nr*WIN_WIDTH/100, nc*WIN_HEIGHT/100), Point((nr+1)*WIN_WIDTH/100, (nc+1)*WIN_HEIGHT/100))
                         #rect.setWidth(0)
@@ -107,6 +128,8 @@ class Waiter(Circle):
             self.__move_to_point(self.pos_to_go[0], dt)
         
             self.pos_to_go.pop(0)   
+
+
 
 def distance_p2p(p1: tuple, p2: tuple) -> tuple:
     x_diff = p1[0] - p2[0]

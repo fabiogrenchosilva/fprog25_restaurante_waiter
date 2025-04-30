@@ -12,10 +12,14 @@ from table import Table
 from obstacle import Obstacle
 from dock import Dock
 from waiter import Waiter
+from utils import load_configs, relative_to_window_coords, win_to_grid_coords
 import time
+
 
 WIN_WIDTH = 1000
 WIN_HEIGHT = 800
+
+
 
 class Window(GraphWin):
     def __init__(self):
@@ -32,24 +36,25 @@ class Window(GraphWin):
         self.__generate_room()
 
         # Load waiter class
-        self.waiter = Waiter(self, self.relative_to_window_coords((0.5, 0.5)), self.restaurant_grid)
+        self.waiter = Waiter(self, relative_to_window_coords((0.5, 0.5)), self.restaurant_grid)
         self.waiter.draw(self)
 
         # Debug mode
         self.debug_mode = False
         self.debug_elements = []
     
-    def __astart_set_obstacle(self, p1, p2):
+    def __set_grid(self, p1: tuple, p2: tuple, table=False):
+        #point_1, point_2 = win_to_grid_coords(p1), win_to_grid_coords(p2)
+
         for i in range(int(p1[0]/(WIN_WIDTH/10)*10), int(p2[0]/(WIN_WIDTH/10)*10)+1):
             for j in range(int(p1[1]/(WIN_HEIGHT/10)*10), int(p2[1]/(WIN_HEIGHT/10)*10)+1):
                 self.restaurant_grid[i][j] = 1
+        table = False
+        if table:
+            for i in range(int((p1[0]+25)/(WIN_WIDTH/10)*10), int((p2[0]-25)/(WIN_WIDTH/10)*10)+1):
+                for j in range(int((p1[1]+25)/(WIN_HEIGHT/10)*10), int((p2[1]-25)/(WIN_HEIGHT/10)*10)+1):
+                    self.restaurant_grid[i][j] = 2
     
-    # Function to change relative coords to window coords
-    def relative_to_window_coords(self, point) -> tuple:
-        x_pos = point[0] * WIN_WIDTH
-        y_pos = point[1] * WIN_HEIGHT
-
-        return (x_pos, y_pos)
     
     def __load_file(self, ficheiro_sala: str) -> tuple:
         file = open(ficheiro_sala, 'r')
@@ -59,8 +64,8 @@ class Window(GraphWin):
         docks = []
 
         for line in file:
-            line.strip()        
-            if not (line.startswith("#") or line.startswith("\n")):
+            line.strip()     
+            if not (line.startswith("#") or line.startswith("\n") or line.startswith("*")):
                 elements = line.split(" ")
 
                 coords = []
@@ -70,19 +75,19 @@ class Window(GraphWin):
 
                 x_rel, y_rel, width, height = coords[0], coords[1], coords[2], coords[3]
 
-                p1 = self.relative_to_window_coords((x_rel, y_rel))
-                p2 = self.relative_to_window_coords((x_rel + width, y_rel + height))
+                p1 = relative_to_window_coords((x_rel, y_rel))
+                p2 = relative_to_window_coords((x_rel + width, y_rel + height))
 
                 match elements[0]:
                     case "Table":            
                         table = Table(self, p1, p2)
                         tables.append(table)
-                        self.__astart_set_obstacle((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
+                        self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25), table=True)
 
                     case "Obstacle":
                         obstacle = Obstacle(self, p1, p2)
                         obstacles.append(obstacle)
-                        self.__astart_set_obstacle((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
+                        self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
                     case "Dock":
                         dock = Dock(self, p1, p2)
@@ -124,6 +129,24 @@ class Window(GraphWin):
                         #rect.setFill(color_rgb(0, 0, 0))
                         rect.draw(self)
                         self.debug_elements.append(rect)
+                    elif self.restaurant_grid[i][j] == 2:
+                        rect = Rectangle(Point(i*WIN_WIDTH/100, j*WIN_HEIGHT/100), Point((i+1)*WIN_WIDTH/100, (j+1)*WIN_HEIGHT/100))
+                        #rect.setFill(color_rgb(0, 0, 0))
+                        rect.setFill(color_rgb(255, 0, 0))
+                        rect.draw(self)
+                        self.debug_elements.append(rect)
+
+    def __click_handler(self) -> bool:
+        clicked_point = self.checkMouse()
+        if not clicked_point:
+            return
+        
+        for table in self.tables:
+            if table.clicked((clicked_point.x, clicked_point.y)):
+                self.waiter.move_to((clicked_point.x, clicked_point.y), table=True)
+                return True
+        
+        self.waiter.move_to((clicked_point.x, clicked_point.y))
 
     def main_loop(self) -> bool:
         last_time = time.time()
@@ -137,10 +160,9 @@ class Window(GraphWin):
                 last_time = current_time
                 ####################
 
-                key = self.checkKey()
-                po = self.checkMouse()
-                if po:
-                    self.waiter.move_to((po.x, po.y))
+                key = self.checkKey()    
+
+                self.__click_handler()
                 if key == "F12":
                     self.__debug_mode()
                 

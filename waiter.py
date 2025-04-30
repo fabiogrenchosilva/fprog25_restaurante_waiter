@@ -1,40 +1,41 @@
 from src.packages.graphics import *
+from utils import relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, distance_p2p
 from time import time
-from math import sqrt
 from collections import deque
+import os
 
 WIN_WIDTH = 1000
 WIN_HEIGHT = 800
 
 class Waiter(Circle):
-    def __init__(self, win: GraphWin, pos: tuple, grid):
-        Circle.__init__(self, Point(*pos), 25)
+    def __init__(self, win: GraphWin, grid):
+        self.position = relative_to_window_coords((float(os.environ.get("WAITER_INIT_POS_X")), float(os.environ.get("WAITER_INIT_POS_Y"))))
+
+        Circle.__init__(self, Point(*self.position), 25)
 
         self.win = win
 
-        self.current_pos = pos
         self.pos_to_go = []
         self.grid = grid
-        self.current_grid_pos = (int(pos[0]/(WIN_WIDTH/10)*10), int(pos[1]/(WIN_HEIGHT/10)*10))
-
-        self.velocity = 200 # px/s
+        self.grid_position = win_to_grid_coords(self.position)
 
         self.setWidth(1)
         self.setFill(color_rgb(255, 0, 0))
 
 
     def move_to(self, point: tuple, table=False):
-        end = (int(point[0]/(WIN_WIDTH/10)*10), int(point[1]/(WIN_HEIGHT/10)*10))
+        end = win_to_grid_coords(point)
         if table:
             end = self.__find_point(point)
         
-        path = self.__bfs(self.grid, self.current_grid_pos, end)
+        path = self.__bfs(self.grid, self.grid_position, end)
         self.pos_to_go = path
 
 
     def __find_point(self, point: tuple):
-        point = (int(point[0]/(WIN_WIDTH/10)*10), int(point[1]/(WIN_HEIGHT/10)*10))
-        directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+        point = win_to_grid_coords(point)
+
+        directions = [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]
         
         dist = 4000 #Just a large number
         point_finded = (0, 0)
@@ -55,13 +56,13 @@ class Waiter(Circle):
     def __move_to_point(self, point: tuple, dt: float):
         point = (int(point[0]*10), int(point[1]*8))
         
-        dx = point[0] - self.current_pos[0] 
-        dy = point[1] - self.current_pos[1]
+        dx = point[0] - self.position[0] 
+        dy = point[1] - self.position[1]
 
         self.move(dx, dy)
 
-        self.current_pos = point
-        self.current_grid_pos = (int(point[0]/(WIN_WIDTH/10)*10), int(point[1]/(WIN_HEIGHT/10)*10))
+        self.position = point
+        self.grid_position = win_to_grid_coords(point)
     
     def __bfs(self, grid, start, end):
         rows, cols = len(grid), len(grid[0])
@@ -71,7 +72,7 @@ class Waiter(Circle):
         
         queue = deque()
         queue.append(start)
-        rect = Rectangle(Point(start[0]*WIN_WIDTH/100, start[1]*WIN_HEIGHT/100), Point((start[0]+1)*WIN_WIDTH/100, (start[1]+1)*WIN_HEIGHT/100))
+        rect = Rectangle(Point(*grid_to_win_coords(start)), Point(*grid_to_win_coords((start[0]+1, start[1]+1))))
         rect.setWidth(0)
         rect.setFill(color_rgb(0, 0, 255))
         rect.draw(self.win)
@@ -130,8 +131,3 @@ class Waiter(Circle):
             self.pos_to_go.pop(0)   
 
 
-
-def distance_p2p(p1: tuple, p2: tuple) -> tuple:
-    x_diff = p1[0] - p2[0]
-    y_diff = p1[1] - p2[1]
-    return (x_diff, y_diff, sqrt(x_diff**2 + y_diff**2))

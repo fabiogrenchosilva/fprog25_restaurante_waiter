@@ -1,6 +1,6 @@
 # File containing helper functions and some settings
 import os
-
+from math import sqrt
 
 def load_configs(filepath: str):
     file = open(filepath, 'r')
@@ -26,7 +26,22 @@ def win_to_grid_coords(point: tuple) -> tuple:
     grid_width = int(os.environ.get("GRID_WIDTH"))
     grid_height = int(os.environ.get("GRID_HEIGHT"))
 
-    return int((grid_width*point[0])/win_width), int((grid_height*point[1])/win_height)
+    return (int((grid_width*point[0])/win_width), int((grid_height*point[1])/win_height))
+
+
+def grid_to_win_coords(point: tuple) -> tuple:
+    win_width = int(os.environ.get("WIN_WIDTH"))
+    win_height = int(os.environ.get("WIN_HEIGHT"))
+    grid_width = int(os.environ.get("GRID_WIDTH"))
+    grid_height = int(os.environ.get("GRID_HEIGHT"))
+
+    return (point[0]*win_width/grid_width, point[1]*win_height/grid_height)
+
+
+def distance_p2p(p1: tuple, p2: tuple) -> tuple:
+    x_diff = p1[0] - p2[0]
+    y_diff = p1[1] - p2[1]
+    return (x_diff, y_diff, sqrt(x_diff**2 + y_diff**2))
+
 
 load_configs("src/salas/sala01.txt")
-#print(int(os.environ.get("WIN_WIDTH")))

@@ -12,7 +12,7 @@ from table import Table
 from obstacle import Obstacle
 from dock import Dock
 from waiter import Waiter
-from utils import load_configs, relative_to_window_coords, win_to_grid_coords
+from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords
 import time
 
 
@@ -29,34 +29,31 @@ class Window(GraphWin):
         self.tables = []
         self.obstacles = []
         self.docks = []
+        self.pratos = None
 
         self.restaurant_grid = [[0 for _ in range(100)] for _ in range(100)]
 
-        self.tables, self.obstacles, self.pratos, self.docks = self.__load_file("src/salas/sala01.txt")
+        self.__load_file("src/salas/sala01.txt")
         self.__generate_room()
 
         # Load waiter class
-        self.waiter = Waiter(self, relative_to_window_coords((0.5, 0.5)), self.restaurant_grid)
+        self.waiter = Waiter(self, self.restaurant_grid)
         self.waiter.draw(self)
 
         # Debug mode
         self.debug_mode = False
         self.debug_elements = []
     
-    def __set_grid(self, p1: tuple, p2: tuple, table=False):
-        #point_1, point_2 = win_to_grid_coords(p1), win_to_grid_coords(p2)
+    
+    def __set_grid(self, p1: tuple, p2: tuple):
+        point_1, point_2 = win_to_grid_coords(p1), win_to_grid_coords(p2)
 
-        for i in range(int(p1[0]/(WIN_WIDTH/10)*10), int(p2[0]/(WIN_WIDTH/10)*10)+1):
-            for j in range(int(p1[1]/(WIN_HEIGHT/10)*10), int(p2[1]/(WIN_HEIGHT/10)*10)+1):
+        for i in range(point_1[0], point_2[0]+1):
+            for j in range(point_1[1], point_2[1]+1):
                 self.restaurant_grid[i][j] = 1
-        table = False
-        if table:
-            for i in range(int((p1[0]+25)/(WIN_WIDTH/10)*10), int((p2[0]-25)/(WIN_WIDTH/10)*10)+1):
-                for j in range(int((p1[1]+25)/(WIN_HEIGHT/10)*10), int((p2[1]-25)/(WIN_HEIGHT/10)*10)+1):
-                    self.restaurant_grid[i][j] = 2
     
     
-    def __load_file(self, ficheiro_sala: str) -> tuple:
+    def __load_file(self, ficheiro_sala: str) -> None:
         file = open(ficheiro_sala, 'r')
 
         tables = []
@@ -81,25 +78,26 @@ class Window(GraphWin):
                 match elements[0]:
                     case "Table":            
                         table = Table(self, p1, p2)
-                        tables.append(table)
-                        self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25), table=True)
+                        self.tables.append(table)
+                        self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
                     case "Obstacle":
                         obstacle = Obstacle(self, p1, p2)
-                        obstacles.append(obstacle)
+                        self.obstacles.append(obstacle)
                         self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
                     case "Dock":
                         dock = Dock(self, p1, p2)
-                        docks.append(dock)
+                        self.docks.append(dock)
 
                     case "Pratos":
-                        pratos = Dock(self, p1, p2)
+                        self.pratos = Dock(self, p1, p2)
                     
                     case _:
                         raise ValueError(f'Elemento "{elements[0]}" em "{ficheiro_sala}" desconhecido')
+                    
         file.close()
-        return (tables, obstacles, pratos, docks)
+
             
     def __generate_room(self) -> None:
         for table in self.tables:
@@ -113,6 +111,7 @@ class Window(GraphWin):
 
         self.pratos.draw(self)
 
+   
     def __debug_mode(self) -> None:
         self.debug_mode = not self.debug_mode
         print(f"Debug mode was setted to: {self.debug_mode}")
@@ -125,16 +124,11 @@ class Window(GraphWin):
                 for j in range(100):
                     if self.restaurant_grid[i][j] == 1:
                         #print(i, j, i*WIN_WIDTH/100, j*WIN_HEIGHT/100)
-                        rect = Rectangle(Point(i*WIN_WIDTH/100, j*WIN_HEIGHT/100), Point((i+1)*WIN_WIDTH/100, (j+1)*WIN_HEIGHT/100))
+                        rect = Rectangle(Point(*grid_to_win_coords((i, j))), Point(*grid_to_win_coords((i+1, j+1))))
                         #rect.setFill(color_rgb(0, 0, 0))
                         rect.draw(self)
                         self.debug_elements.append(rect)
-                    elif self.restaurant_grid[i][j] == 2:
-                        rect = Rectangle(Point(i*WIN_WIDTH/100, j*WIN_HEIGHT/100), Point((i+1)*WIN_WIDTH/100, (j+1)*WIN_HEIGHT/100))
-                        #rect.setFill(color_rgb(0, 0, 0))
-                        rect.setFill(color_rgb(255, 0, 0))
-                        rect.draw(self)
-                        self.debug_elements.append(rect)
+
 
     def __click_handler(self) -> bool:
         clicked_point = self.checkMouse()
@@ -147,6 +141,11 @@ class Window(GraphWin):
                 return True
         
         self.waiter.move_to((clicked_point.x, clicked_point.y))
+
+  
+    def __key_handler(self) -> None:
+        pass
+
 
     def main_loop(self) -> bool:
         last_time = time.time()
@@ -182,6 +181,7 @@ def main():
     win = Window()
 
     win.main_loop()
+
 
 if __name__=='__main__':
     main()

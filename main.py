@@ -13,17 +13,12 @@ from obstacle import Obstacle
 from dock import Dock
 from waiter import Waiter
 from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords
-import time
-
-
-WIN_WIDTH = 1000
-WIN_HEIGHT = 800
-
+import time, os
 
 
 class Window(GraphWin):
     def __init__(self):
-        GraphWin.__init__(self, "FProg", WIN_WIDTH, WIN_HEIGHT)
+        GraphWin.__init__(self, "FProg", os.environ.get("WIN_WIDTH"), os.environ.get("WIN_HEIGHT"))
 
         # Load/generate static objects
         self.tables = []
@@ -114,23 +109,23 @@ class Window(GraphWin):
    
     def __debug_mode(self) -> None:
         self.debug_mode = not self.debug_mode
+        os.environ["DEBUG_MODE"] = str(self.debug_mode)
         print(f"Debug mode was setted to: {self.debug_mode}")
-
+       
         for element in self.debug_elements:
             element.undraw()
             del element
+
         if self.debug_mode:
             for i in range(100):
                 for j in range(100):
                     if self.restaurant_grid[i][j] == 1:
-                        #print(i, j, i*WIN_WIDTH/100, j*WIN_HEIGHT/100)
                         rect = Rectangle(Point(*grid_to_win_coords((i, j))), Point(*grid_to_win_coords((i+1, j+1))))
-                        #rect.setFill(color_rgb(0, 0, 0))
                         rect.draw(self)
                         self.debug_elements.append(rect)
 
 
-    def __click_handler(self) -> bool:
+    def __click_handler(self) -> None:
         clicked_point = self.checkMouse()
         if not clicked_point:
             return
@@ -171,7 +166,8 @@ class Window(GraphWin):
                 self.waiter.update(dt)
                 update(60)
 
-            except GraphicsError:
+            except GraphicsError as err:
+                print(err)
                 break
 
         return True

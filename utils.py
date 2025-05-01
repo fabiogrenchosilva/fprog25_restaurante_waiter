@@ -2,7 +2,7 @@
 import os
 from math import sqrt
 
-def load_configs(filepath: str):
+def load_configs(filepath: str) -> None:
     file = open(filepath, 'r')
 
     for line in file:

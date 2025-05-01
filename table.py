@@ -11,7 +11,7 @@ from src.packages.graphics import *
 
 class Table(Rectangle):
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple):
-        Rectangle.__init__(self, Point(p1[0], p1[1]), Point(p2[0], p2[1]))
+        Rectangle.__init__(self, Point(*p1), Point(*p2))
 
         self.setWidth(0)
         self.setFill(color_rgb(25, 25, 225))

@@ -27,6 +27,7 @@ class Window(GraphWin):
 
         self.restaurant_grid = [[0 for _ in range(100)] for _ in range(100)]
 
+        # Load all the static objects from a file and create instances of them to display in the screen 
         self.__load_file("src/salas/sala01.txt")
         self.__generate_room()
 

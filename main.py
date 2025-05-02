@@ -10,7 +10,7 @@ from src.packages.graphics import *
 from table import Table
 from obstacle import Obstacle
 from dock import Dock
-from waiter import Waiter
+from waiter import Waiter, MoveOperation, WaitOperation
 from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords
 import time, os
 
@@ -25,7 +25,7 @@ class Window(GraphWin):
         self.docks = []
         self.pratos = None
 
-        self.restaurant_grid = [[0 for _ in range(100)] for _ in range(100)]
+        self.restaurant_grid = [[0 for _ in range(int(os.environ.get("GRID_WIDTH")))] for _ in range(int(os.environ.get("GRID_HEIGHT")))]
 
         # Load all the static objects from a file and create instances of them to display in the screen 
         self.__load_file("src/salas/sala01.txt")
@@ -34,6 +34,7 @@ class Window(GraphWin):
         # Load waiter class
         self.waiter = Waiter(self, self.restaurant_grid)
         self.waiter.draw(self)
+        self.waiter.battery_indicator.draw(self)
 
         # Debug mode
         self.debug_mode = False
@@ -132,14 +133,21 @@ class Window(GraphWin):
         
         for table in self.tables:
             if table.clicked((clicked_point.x, clicked_point.y)):
-                self.waiter.move_to((clicked_point.x, clicked_point.y), table=True)
+                #self.waiter.move_to((clicked_point.x, clicked_point.y), table=True)
+                self.waiter.add_operations([MoveOperation((clicked_point.x, clicked_point.y), table=table),
+                                            WaitOperation(0.5)])
                 return True
         
-        self.waiter.move_to((clicked_point.x, clicked_point.y))
+        self.waiter.add_operations([MoveOperation((clicked_point.x, clicked_point.y)),
+                                    WaitOperation(0.5)])
 
   
     def __key_handler(self) -> None:
-        pass
+        key = self.checkKey()
+        print(key)
+        if key == "F12":
+            print(key)
+            self.__debug_mode()
 
 
     def main_loop(self) -> bool:
@@ -154,17 +162,14 @@ class Window(GraphWin):
                 last_time = current_time
                 ####################
 
-                key = self.checkKey()    
-
                 self.__click_handler()
-                if key == "F12":
-                    self.__debug_mode()
-                
+                self.__key_handler()
+
+                self.waiter.update(dt)
+                update(60)
 
                 if self.isClosed():
                     break
-                self.waiter.update(dt)
-                update(60)
 
             except GraphicsError as err:
                 print(err)

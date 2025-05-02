@@ -11,6 +11,7 @@ class Waiter(Circle):
 
         self.win = win
 
+        # This is a commentf
         self.pos_to_go = []
         self.grid = grid
         self.grid_position = win_to_grid_coords(self.position)

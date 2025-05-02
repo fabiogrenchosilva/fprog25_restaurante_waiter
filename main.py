@@ -6,7 +6,6 @@ Criado por:
     - Grupo 46
 
 '''
-
 from src.packages.graphics import *
 from table import Table
 from obstacle import Obstacle

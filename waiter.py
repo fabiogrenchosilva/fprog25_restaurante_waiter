@@ -5,16 +5,19 @@ from collections import deque
 import os
 
 class Waiter(Circle):
-    def __init__(self, win: GraphWin, grid):
-        self.position = relative_to_window_coords((float(os.environ.get("WAITER_INIT_POS_X")), float(os.environ.get("WAITER_INIT_POS_Y"))))
+    def __init__(self, win: GraphWin, grid, dock_station_coords: tuple):
+        self.position = relative_to_window_coords((float(os.environ.get("WAITER_INIT_POS_X")), 
+                                                   float(os.environ.get("WAITER_INIT_POS_Y"))))
 
         Circle.__init__(self, Point(*self.position), int(os.environ.get("WAITER_RADIUS")))
+        self.draw(win)
         
         self.battery_indicator = Circle(Point(self.position[0]+18, self.position[1]+18), 8)
         self.battery_indicator.setWidth(0)
         self.battery_indicator.setFill(color_rgb(0, 255, 0))
         self.battery_level = 1
         self.needs_battery = False
+        self.battery_indicator.draw(win)
 
         self.win = win
 
@@ -23,8 +26,9 @@ class Waiter(Circle):
         self.grid = grid
         self.grid_position = win_to_grid_coords(self.position)
 
-        # Operation
+        # Operations
         self.operation_queue = []
+        self.inactivity = 0
 
         self.setWidth(1)
         self.setFill(color_rgb(255, 0, 0))
@@ -32,15 +36,14 @@ class Waiter(Circle):
         self.debug_mode = False
         self.__debug_elements = []
 
-        self.operation_queue.extend([MoveOperation((0, 0)), 
-                                     WaitOperation(1),
-                                     MoveOperation((100, 0)),
-                                     ])
+        self.operation_queue.extend([MoveOperation(dock_station_coords)])
+
+        self.dock_station_coords = dock_station_coords
 
 
     def move_to(self, point: tuple, table=None) -> None:
         end = win_to_grid_coords(point)
-        if table:
+        if table is not None:
             end = self.__find_point(point)
         
         path = self.__bfs(self.grid, self.grid_position, end)
@@ -49,6 +52,10 @@ class Waiter(Circle):
 
     def add_operations(self, operation) -> None:
         self.operation_queue.extend(operation)
+    
+
+    def update_grid(self, grid) -> None:
+        self.grid = grid
 
 
     def __find_point(self, point: tuple) -> tuple:
@@ -133,7 +140,8 @@ class Waiter(Circle):
             for i in range(len(path)-1):
                 x = path[i][0]
                 y = path[i][1]
-                rect = Line(Point(*grid_to_win_coords((x, y))), Point(*grid_to_win_coords((path[i+1][0], path[i+1][1]))))
+                rect = Line(Point(*grid_to_win_coords((x, y))), 
+                            Point(*grid_to_win_coords((path[i+1][0], path[i+1][1]))))
                 rect.setWidth(2)
                 rect.setFill(color_rgb(0, 255, 0))
                 self.__debug_elements.append(rect)
@@ -158,21 +166,26 @@ class Waiter(Circle):
         if self.operation_queue:
             current_operation = self.operation_queue[0]
 
+            self.inactivity = 0
+
             if current_operation.update(waiter=self, dt=dt):
                 self.operation_queue.pop(0)
         
         ### Battery level
         if self.battery_level <= 0.2 and not self.needs_battery:
             self.battery_indicator.setFill(color_rgb(255, 0, 0))  
-            self.operation_queue.insert(1, MoveOperation((587, 20)))
-            self.operation_queue.insert(2, WaitOperation(2, charging=True))    
+            self.operation_queue.insert(2, MoveOperation(self.dock_station_coords))
+            self.operation_queue.insert(3, WaitOperation(2, charging=True))    
             self.needs_battery = True  
             
         elif self.battery_level <= 0.5:
             self.battery_indicator.setFill(color_rgb(255, 255, 0))
         elif self.battery_level <= 1:
             self.battery_indicator.setFill(color_rgb(0, 255, 0))
-
+        
+        self.inactivity += 1
+        if self.inactivity > 240:
+            self.add_operations([MoveOperation(self.dock_station_coords)])
 
 
 class MoveOperation:
@@ -196,7 +209,14 @@ class MoveOperation:
     
     def __del__(self):
         if self.table:
-            self.table.dehighlight()
+            try:
+                self.table.dehighlight()
+            except:
+                pass
+
+    def __str__(self):
+        return f"Move Operation {self.location}"
+
 
 class WaitOperation:
     def __init__(self, duration: float = 0, charging: bool = False):
@@ -213,3 +233,24 @@ class WaitOperation:
             self.waiter.battery_level = 1
             self.waiter.needs_battery = False
 
+    def __str__(self):
+        return f"Wait Operation {self.duration} - {self.charging}"
+
+
+class DeliveryOperation:
+    def __init__(self, table_location: tuple, plates_location:tuple, table: Table = None):
+        self.operation_queue = [MoveOperation(table_location, table=True),
+                                WaitOperation(2),
+                                MoveOperation(plates_location, table=True),
+                                WaitOperation(2),
+                                MoveOperation(table_location, table),
+                                WaitOperation(2)]
+
+    def update(self, waiter: Waiter = None, dt: float = 0):
+        if self.operation_queue:
+            current_operation = self.operation_queue[0]
+
+            if current_operation.update(waiter=waiter, dt=dt):
+                self.operation_queue.pop(0)
+        else:
+            return True

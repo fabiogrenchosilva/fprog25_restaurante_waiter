@@ -8,9 +8,10 @@ Criado por:
 '''
 from src.packages.graphics import *
 from table import Table
-from obstacle import Obstacle
+from obstacle import Wall, Obstacle
 from dock import Dock
-from waiter import Waiter, MoveOperation, WaitOperation
+from plates import Plates
+from waiter import Waiter, MoveOperation, WaitOperation, DeliveryOperation
 from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords
 import time, os
 
@@ -18,12 +19,14 @@ import time, os
 class Window(GraphWin):
     def __init__(self):
         GraphWin.__init__(self, "FProg", os.environ.get("WIN_WIDTH"), os.environ.get("WIN_HEIGHT"))
+        self.setBackground(color_rgb(255, 255, 255))
 
         # Load/generate static objects
         self.tables = []
+        self.walls = []
+        self.dock = None
+        self.plates = []
         self.obstacles = []
-        self.docks = []
-        self.pratos = None
 
         self.restaurant_grid = [[0 for _ in range(int(os.environ.get("GRID_WIDTH")))] for _ in range(int(os.environ.get("GRID_HEIGHT")))]
 
@@ -32,9 +35,10 @@ class Window(GraphWin):
         self.__generate_room()
 
         # Load waiter class
-        self.waiter = Waiter(self, self.restaurant_grid)
-        self.waiter.draw(self)
-        self.waiter.battery_indicator.draw(self)
+        self.waiter = Waiter(self, 
+                            grid=self.restaurant_grid, 
+                            dock_station_coords=(self.dock.getCenter().x, self.dock.getCenter().y))
+        self.update_grid()    
 
         # Debug mode
         self.debug_mode = False
@@ -48,13 +52,19 @@ class Window(GraphWin):
             for j in range(point_1[1], point_2[1]+1):
                 self.restaurant_grid[i][j] = 1
     
+    def update_grid(self) -> None:
+        self.restaurant_grid = [[0 for _ in range(int(os.environ.get("GRID_WIDTH")))] for _ in range(int(os.environ.get("GRID_HEIGHT")))]
+        for objs in [self.tables, self.walls, self.plates, self.obstacles]:
+            for obj in objs:
+                p1 = obj.getP1()
+                p2 = obj.getP2()
+                self.__set_grid((p1.x-25, p1.y-25), (p2.x+25, p2.y+25))
+        
+        self.waiter.grid = self.restaurant_grid
+    
     
     def __load_file(self, ficheiro_sala: str) -> None:
         file = open(ficheiro_sala, 'r')
-
-        tables = []
-        obstacles = []
-        docks = []
 
         for line in file:
             line.strip()     
@@ -75,37 +85,33 @@ class Window(GraphWin):
                     case "Table":            
                         table = Table(self, p1, p2)
                         self.tables.append(table)
-                        self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
+                        #self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
                     case "Obstacle":
-                        obstacle = Obstacle(self, p1, p2)
-                        self.obstacles.append(obstacle)
-                        self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
+                        obstacle = Wall(self, p1, p2)
+                        self.walls.append(obstacle)
+                        #self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
-                    case "Dock":
-                        dock = Dock(self, p1, p2)
-                        self.docks.append(dock)
+                    case "Dock": 
+                        self.dock = Dock(self, p1, p2)
 
                     case "Pratos":
-                        self.pratos = Dock(self, p1, p2)
+                        plates = Plates(self, p1, p2)
+                        self.plates.append(plates)
+                        #self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
                     
                     case _:
                         raise ValueError(f'Elemento "{elements[0]}" em "{ficheiro_sala}" desconhecido')
-                    
+
         file.close()
 
             
     def __generate_room(self) -> None:
-        for table in self.tables:
-            table.draw(self)
+        for objs in [self.tables, self.walls, self.plates, self.obstacles]:
+            for obj in objs:
+                obj.draw(self)
 
-        for obstacle in self.obstacles:
-            obstacle.draw(self)
-
-        for dock in self.docks:
-            dock.draw(self)
-
-        self.pratos.draw(self)
+        self.dock.draw(self)
 
    
     def __debug_mode(self) -> None:
@@ -133,20 +139,24 @@ class Window(GraphWin):
         
         for table in self.tables:
             if table.clicked((clicked_point.x, clicked_point.y)):
-                #self.waiter.move_to((clicked_point.x, clicked_point.y), table=True)
-                self.waiter.add_operations([MoveOperation((clicked_point.x, clicked_point.y), table=table),
-                                            WaitOperation(0.5)])
-                return True
+                self.waiter.add_operations([DeliveryOperation((clicked_point.x, clicked_point.y), 
+                                                              (self.plates[0].getCenter().x, self.plates[0].getCenter().y), 
+                                                              table)])
+                return None
         
-        self.waiter.add_operations([MoveOperation((clicked_point.x, clicked_point.y)),
-                                    WaitOperation(0.5)])
+        #self.__set_grid((clicked_point.x-50, clicked_point.y-50), (clicked_point.x+50, clicked_point.y+50))
+        r = Obstacle((clicked_point.x, clicked_point.y))
+        self.obstacles.append(r)
+        r.draw(self)
+
+        self.update_grid()
 
   
     def __key_handler(self) -> None:
+        """This is a function """
         key = self.checkKey()
-        print(key)
+
         if key == "F12":
-            print(key)
             self.__debug_mode()
 
 
@@ -166,8 +176,15 @@ class Window(GraphWin):
                 self.__key_handler()
 
                 self.waiter.update(dt)
-                update(60)
+                for (i, obstacle) in enumerate(self.obstacles):
+                    if obstacle.update(dt):
+                        obstacle.undraw()
+                        del obstacle
+                        self.obstacles.pop(i)
+                        self.update_grid()
 
+
+                update(60)
                 if self.isClosed():
                     break
 

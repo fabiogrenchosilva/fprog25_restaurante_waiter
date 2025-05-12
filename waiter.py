@@ -36,13 +36,12 @@ class Waiter(Circle):
         self.debug_mode = False
         self.__debug_elements = []
 
-        self.operation_queue.extend([MoveOperation((0, 0)), 
-                                     WaitOperation(1),
-                                     MoveOperation((100, 0)),
-                                     ])
+        # self.operation_queue.extend([MoveOperation((0, 0)), 
+        #                              WaitOperation(1),
+        #                              MoveOperation((100, 0)),
+        #                              ])
         self.draw(win)
         self.battery_indicator.draw(win)
-
 
     def move_to(self, point: tuple, table=None) -> None:
         end = win_to_grid_coords(point)
@@ -52,10 +51,8 @@ class Waiter(Circle):
         path = self.__bfs(self.grid, self.grid_position, end)
         self.pos_to_go = path
 
-
     def add_operations(self, operation) -> None:
         self.operation_queue.extend(operation)
-
 
     def __find_point(self, point: tuple) -> tuple:
         point = win_to_grid_coords(point)
@@ -159,7 +156,6 @@ class Waiter(Circle):
             
         return path
     
-
     def update(self, dt) -> None:
         if self.operation_queue:
             current_operation = self.operation_queue[0]
@@ -179,8 +175,6 @@ class Waiter(Circle):
         elif self.battery_level <= 1:
             self.battery_indicator.setFill(color_rgb(0, 255, 0))
 
-
-
 class MoveOperation:
     def __init__(self, location: tuple, table: Table = None):
         self.location = location
@@ -195,7 +189,6 @@ class MoveOperation:
         if waiter.pos_to_go:
             waiter._move_to_point(waiter.pos_to_go[0])
             waiter.pos_to_go.pop(0)
-            #time.sleep(0.01)
             return False
         else: 
             return True

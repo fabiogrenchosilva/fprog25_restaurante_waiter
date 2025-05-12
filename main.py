@@ -8,7 +8,7 @@ Criado por:
 '''
 from src.packages.graphics import *
 from table import Table
-from obstacle import Obstacle
+from obstacle import Wall, Obstacle
 from dock import Dock
 from waiter import Waiter, DeliveryOperation
 from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords
@@ -21,9 +21,10 @@ class Window(GraphWin):
 
         # Load/generate static objects
         self.tables = []
-        self.obstacles = []
-        self.docks = []
-        self.pratos = None
+        self.walls = []
+        self.charging_dock = None
+        self.plates = None
+        self.obstacles: Obstacle = []
 
         self.restaurant_grid = [[0 for _ in range(int(os.environ.get("GRID_WIDTH")))] for _ in range(int(os.environ.get("GRID_HEIGHT")))]
 
@@ -71,18 +72,17 @@ class Window(GraphWin):
                         self.tables.append(table)
                         self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
-                    case "Obstacle":
-                        obstacle = Obstacle(self, p1, p2)
-                        self.obstacles.append(obstacle)
+                    case "Walls":
+                        obstacle = Wall(self, p1, p2)
+                        self.walls.append(obstacle)
                         self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
                     case "Dock":
-                        dock = Dock(self, p1, p2)
+                        self.charging_dock = Dock(self, p1, p2)
                         self.charging_station_location = ((p1[0]+p2[0])/2, (p1[1]+p2[1])/2)
-                        self.docks.append(dock)
 
-                    case "Pratos":
-                        self.pratos = Dock(self, p1, p2)
+                    case "Plates":
+                        self.plates = Dock(self, p1, p2)
                         self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
                     
                     case _:
@@ -95,13 +95,12 @@ class Window(GraphWin):
         for table in self.tables:
             table.draw(self)
 
-        for obstacle in self.obstacles:
+        for obstacle in self.walls:
             obstacle.draw(self)
 
-        for dock in self.docks:
-            dock.draw(self)
+        self.charging_dock.draw(self)
 
-        self.pratos.draw(self)
+        self.plates.draw(self)
 
    
     def __debug_mode(self) -> None:
@@ -131,11 +130,12 @@ class Window(GraphWin):
             if table.clicked((clicked_point.x, clicked_point.y)):
                 self.waiter.add_operations([DeliveryOperation((clicked_point.x, clicked_point.y), table=table)])
                 return
+            
+        self.obstacles.append(Obstacle(self, (clicked_point.x-10, clicked_point.y-10), (clicked_point.x+10, clicked_point.y+10), duration=3).draw(self))
 
   
     def __key_handler(self) -> None:
         key = self.checkKey()
-        print(key)
         if key == "F12":
             print(key)
             self.__debug_mode()
@@ -155,6 +155,12 @@ class Window(GraphWin):
 
                 self.__click_handler()
                 self.__key_handler()
+
+                for obst in self.obstacles:
+                    if obst.update(dt):
+                        self.obstacles.remove(obst)
+                        del obst
+
 
                 self.waiter.update(dt)
                 update(60)

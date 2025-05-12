@@ -9,9 +9,25 @@ Criado por:
 
 from src.packages.graphics import *
 
-class Obstacle(Rectangle):
+class Wall(Rectangle):
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple):
         Rectangle.__init__(self, Point(p1[0], p1[1]), Point(p2[0], p2[1]))
 
         self.setWidth(0)
         self.setFill(color_rgb(210, 180, 140))
+
+class Obstacle(Rectangle):
+    def __init__(self, win: GraphWin, p1: tuple, p2: tuple, duration: float):
+        Rectangle.__init__(self, Point(p1[0], p1[1]), Point(p2[0], p2[1]))
+
+        self.duration = duration
+
+        self.setWidth(0)
+        self.setFill(color_rgb(210, 180, 140))
+    
+    def update(self, dt: float) -> bool:
+        self.duration -= dt
+        if self.duration < 0:
+            self.undraw()
+            del self
+            return True

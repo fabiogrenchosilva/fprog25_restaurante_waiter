@@ -5,7 +5,7 @@ from collections import deque
 import os
 
 class Waiter(Circle):
-    def __init__(self, win: GraphWin, grid):
+    def __init__(self, win: GraphWin, grid, charging_station_location: tuple, plates_station_location: tuple):
         self.position = relative_to_window_coords((float(os.environ.get("WAITER_INIT_POS_X")), float(os.environ.get("WAITER_INIT_POS_Y"))))
 
         Circle.__init__(self, Point(*self.position), int(os.environ.get("WAITER_RADIUS")))
@@ -13,8 +13,12 @@ class Waiter(Circle):
         self.battery_indicator = Circle(Point(self.position[0]+18, self.position[1]+18), 8)
         self.battery_indicator.setWidth(0)
         self.battery_indicator.setFill(color_rgb(0, 255, 0))
+        
         self.battery_level = 1
         self.needs_battery = False
+
+        self.charging_station_location = charging_station_location
+        self.plates_station_location = plates_station_location
 
         self.win = win
 
@@ -36,6 +40,8 @@ class Waiter(Circle):
                                      WaitOperation(1),
                                      MoveOperation((100, 0)),
                                      ])
+        self.draw(win)
+        self.battery_indicator.draw(win)
 
 
     def move_to(self, point: tuple, table=None) -> None:
@@ -164,7 +170,7 @@ class Waiter(Circle):
         ### Battery level
         if self.battery_level <= 0.2 and not self.needs_battery:
             self.battery_indicator.setFill(color_rgb(255, 0, 0))  
-            self.operation_queue.insert(1, MoveOperation((587, 20)))
+            self.operation_queue.insert(1, MoveOperation(self.charging_station_location))
             self.operation_queue.insert(2, WaitOperation(2, charging=True))    
             self.needs_battery = True  
             
@@ -213,3 +219,24 @@ class WaitOperation:
             self.waiter.battery_level = 1
             self.waiter.needs_battery = False
 
+class DeliveryOperation:
+    def __init__(self, location: tuple, table: Table = None):
+        self.operation_list = [
+            MoveOperation(location, table=table),
+            WaitOperation(2),
+            MoveOperation((500, 40), table=True),
+            WaitOperation(2),
+            MoveOperation(location, table=table),
+            WaitOperation(2)
+        ]
+    
+    def update(self, waiter: Waiter = None, dt: float = 0):
+        if self.operation_list:
+            current_operation = self.operation_list[0]
+
+            if current_operation.update(waiter, dt):
+                self.operation_list.pop(0)
+            
+            return False
+        else:
+            return True

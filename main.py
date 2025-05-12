@@ -10,7 +10,7 @@ from src.packages.graphics import *
 from table import Table
 from obstacle import Obstacle
 from dock import Dock
-from waiter import Waiter, MoveOperation, WaitOperation
+from waiter import Waiter, DeliveryOperation
 from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords
 import time, os
 
@@ -32,9 +32,7 @@ class Window(GraphWin):
         self.__generate_room()
 
         # Load waiter class
-        self.waiter = Waiter(self, self.restaurant_grid)
-        self.waiter.draw(self)
-        self.waiter.battery_indicator.draw(self)
+        self.waiter = Waiter(self, self.restaurant_grid, self.charging_station_location, (0, 0))
 
         # Debug mode
         self.debug_mode = False
@@ -51,10 +49,6 @@ class Window(GraphWin):
     
     def __load_file(self, ficheiro_sala: str) -> None:
         file = open(ficheiro_sala, 'r')
-
-        tables = []
-        obstacles = []
-        docks = []
 
         for line in file:
             line.strip()     
@@ -84,10 +78,12 @@ class Window(GraphWin):
 
                     case "Dock":
                         dock = Dock(self, p1, p2)
+                        self.charging_station_location = ((p1[0]+p2[0])/2, (p1[1]+p2[1])/2)
                         self.docks.append(dock)
 
                     case "Pratos":
                         self.pratos = Dock(self, p1, p2)
+                        self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
                     
                     case _:
                         raise ValueError(f'Elemento "{elements[0]}" em "{ficheiro_sala}" desconhecido')
@@ -133,13 +129,8 @@ class Window(GraphWin):
         
         for table in self.tables:
             if table.clicked((clicked_point.x, clicked_point.y)):
-                #self.waiter.move_to((clicked_point.x, clicked_point.y), table=True)
-                self.waiter.add_operations([MoveOperation((clicked_point.x, clicked_point.y), table=table),
-                                            WaitOperation(0.5)])
-                return True
-        
-        self.waiter.add_operations([MoveOperation((clicked_point.x, clicked_point.y)),
-                                    WaitOperation(0.5)])
+                self.waiter.add_operations([DeliveryOperation((clicked_point.x, clicked_point.y), table=table)])
+                return
 
   
     def __key_handler(self) -> None:

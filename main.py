@@ -33,20 +33,31 @@ class Window(GraphWin):
 
         # Load waiter class
         self.waiter = Waiter(self, self.restaurant_grid, self.charging_station_location, self.plates_location)
+        self.__update_grid()
 
         # Debug mode
         self.debug_mode = False
         self.debug_elements = []
+        
     
-    
-    def __set_grid(self, p1: tuple, p2: tuple):
-        point_1, point_2 = win_to_grid_coords(p1), win_to_grid_coords(p2)
+    def __update_grid(self):
+        def __set_grid(p1: tuple, p2: tuple):
+            point_1, point_2 = win_to_grid_coords(p1), win_to_grid_coords(p2)
 
-        for i in range(point_1[0], point_2[0]+1):
-            for j in range(point_1[1], point_2[1]+1):
-                self.restaurant_grid[i][j] = 1
-    
-    
+            for i in range(point_1[0], point_2[0]+1):
+                for j in range(point_1[1], point_2[1]+1):
+                    self.restaurant_grid[i][j] = 1
+
+        self.restaurant_grid = [[0 for _ in range(int(os.environ.get("GRID_WIDTH")))] for _ in range(int(os.environ.get("GRID_HEIGHT")))]
+
+        for objs in [self.tables, self.walls, self.obstacles, [self.plates]]:
+            for obj in objs:
+                p1 = (obj.getP1().x, obj.getP1().y)
+                p2 = (obj.getP2().x, obj.getP2().y)
+                __set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
+
+        self.waiter.grid = self.restaurant_grid
+        
     def __load_file(self, ficheiro_sala: str) -> None:
         file = open(ficheiro_sala, 'r')
 
@@ -69,12 +80,12 @@ class Window(GraphWin):
                     case "Table":            
                         table = Table(self, p1, p2)
                         self.tables.append(table)
-                        self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
+                        # self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
                     case "Walls":
                         obstacle = Wall(self, p1, p2)
                         self.walls.append(obstacle)
-                        self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
+                        # self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
                     case "Dock":
                         self.charging_dock = Dock(self, p1, p2)
@@ -82,7 +93,7 @@ class Window(GraphWin):
 
                     case "Plates":
                         self.plates = Dock(self, p1, p2)
-                        self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
+                        # self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
                         self.plates_location = ((p1[0]+p2[0])/2, (p1[1]+p2[1])/2) # Mean between diagonal points
                     
                     case _:
@@ -120,6 +131,7 @@ class Window(GraphWin):
                 return
             
         self.obstacles.append(Obstacle(self, (clicked_point.x-10, clicked_point.y-10), (clicked_point.x+10, clicked_point.y+10), duration=3))
+        self.__update_grid()
 
   
     def __key_handler(self) -> None:
@@ -146,8 +158,10 @@ class Window(GraphWin):
 
                 for obst in self.obstacles:
                     if obst.update(dt):
-                        self.obstacles.remove(obst)
+                        self.obstacles.pop(0)
                         del obst
+
+                self.__update_grid()
 
 
                 self.waiter.update(dt)

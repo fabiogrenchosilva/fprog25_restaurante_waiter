@@ -9,3 +9,6 @@ class Dock(Rectangle):
         self.setFill(color_rgb(210, 180, 140))
 
         self.draw(win)
+
+    # def __iter__(self):
+    #     return [self]

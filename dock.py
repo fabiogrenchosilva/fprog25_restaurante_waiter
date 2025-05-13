@@ -7,3 +7,5 @@ class Dock(Rectangle):
 
         self.setWidth(1)
         self.setFill(color_rgb(210, 180, 140))
+
+        self.draw(win)

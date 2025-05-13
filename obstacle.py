@@ -16,6 +16,8 @@ class Wall(Rectangle):
         self.setWidth(0)
         self.setFill(color_rgb(210, 180, 140))
 
+        self.draw(win)
+
 class Obstacle(Rectangle):
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple, duration: float):
         Rectangle.__init__(self, Point(p1[0], p1[1]), Point(p2[0], p2[1]))
@@ -23,7 +25,9 @@ class Obstacle(Rectangle):
         self.duration = duration
 
         self.setWidth(0)
-        self.setFill(color_rgb(210, 180, 140))
+        self.setFill(color_rgb(100, 255, 140))
+
+        self.draw(win)
     
     def update(self, dt: float) -> bool:
         self.duration -= dt

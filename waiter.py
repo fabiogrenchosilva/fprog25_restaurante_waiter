@@ -36,10 +36,7 @@ class Waiter(Circle):
         self.debug_mode = False
         self.__debug_elements = []
 
-        # self.operation_queue.extend([MoveOperation((0, 0)), 
-        #                              WaitOperation(1),
-        #                              MoveOperation((100, 0)),
-        #                              ])
+        self.operation_queue.extend([MoveOperation(self.charging_station_location)])
         self.draw(win)
         self.battery_indicator.draw(win)
 
@@ -194,7 +191,7 @@ class MoveOperation:
             return True
     
     def __del__(self):
-        if self.table:
+        if isinstance(self.table, Table):
             self.table.dehighlight()
 
 class WaitOperation:
@@ -215,7 +212,7 @@ class WaitOperation:
 class DeliveryOperation:
     def __init__(self, location: tuple, table: Table = None):
         self.operation_list = [
-            MoveOperation(location, table=table),
+            MoveOperation(location, table=True),
             WaitOperation(2),
             MoveOperation((500, 40), table=True),
             WaitOperation(2),

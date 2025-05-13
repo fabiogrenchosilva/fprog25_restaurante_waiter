@@ -15,6 +15,8 @@ class Table(Rectangle):
         
         self.setWidth(0)
         self.setFill(color_rgb(25, 25, 225))
+
+        self.draw(win)
     
     def clicked(self, point: tuple) -> bool:
         p1 = self.getP1()

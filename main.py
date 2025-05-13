@@ -20,20 +20,19 @@ class Window(GraphWin):
         GraphWin.__init__(self, "FProg", os.environ.get("WIN_WIDTH"), os.environ.get("WIN_HEIGHT"))
 
         # Load/generate static objects
-        self.tables = []
-        self.walls = []
-        self.charging_dock = None
-        self.plates = None
+        self.tables: Table = []
+        self.walls: Wall = []
+        self.charging_dock: Dock = None
+        self.plates: Dock = None
         self.obstacles: Obstacle = []
 
         self.restaurant_grid = [[0 for _ in range(int(os.environ.get("GRID_WIDTH")))] for _ in range(int(os.environ.get("GRID_HEIGHT")))]
 
         # Load all the static objects from a file and create instances of them to display in the screen 
         self.__load_file("src/salas/sala01.txt")
-        self.__generate_room()
 
         # Load waiter class
-        self.waiter = Waiter(self, self.restaurant_grid, self.charging_station_location, (0, 0))
+        self.waiter = Waiter(self, self.restaurant_grid, self.charging_station_location, self.plates_location)
 
         # Debug mode
         self.debug_mode = False
@@ -79,28 +78,17 @@ class Window(GraphWin):
 
                     case "Dock":
                         self.charging_dock = Dock(self, p1, p2)
-                        self.charging_station_location = ((p1[0]+p2[0])/2, (p1[1]+p2[1])/2)
+                        self.charging_station_location = ((p1[0]+p2[0])/2, (p1[1]+p2[1])/2) # Mean between diagonal points
 
                     case "Plates":
                         self.plates = Dock(self, p1, p2)
                         self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
+                        self.plates_location = ((p1[0]+p2[0])/2, (p1[1]+p2[1])/2) # Mean between diagonal points
                     
                     case _:
                         raise ValueError(f'Elemento "{elements[0]}" em "{ficheiro_sala}" desconhecido')
                     
         file.close()
-
-            
-    def __generate_room(self) -> None:
-        for table in self.tables:
-            table.draw(self)
-
-        for obstacle in self.walls:
-            obstacle.draw(self)
-
-        self.charging_dock.draw(self)
-
-        self.plates.draw(self)
 
    
     def __debug_mode(self) -> None:
@@ -131,7 +119,7 @@ class Window(GraphWin):
                 self.waiter.add_operations([DeliveryOperation((clicked_point.x, clicked_point.y), table=table)])
                 return
             
-        self.obstacles.append(Obstacle(self, (clicked_point.x-10, clicked_point.y-10), (clicked_point.x+10, clicked_point.y+10), duration=3).draw(self))
+        self.obstacles.append(Obstacle(self, (clicked_point.x-10, clicked_point.y-10), (clicked_point.x+10, clicked_point.y+10), duration=3))
 
   
     def __key_handler(self) -> None:

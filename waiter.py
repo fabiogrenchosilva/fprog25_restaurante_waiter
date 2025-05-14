@@ -18,6 +18,8 @@ class Waiter(Circle):
         self.position = relative_to_window_coords((float(os.environ.get("WAITER_INIT_POS_X")), float(os.environ.get("WAITER_INIT_POS_Y"))))
 
         Circle.__init__(self, Point(*self.position), int(os.environ.get("WAITER_RADIUS")))
+
+        self.win = win
         
         # Code related to indicate the battery level
         self.battery_indicator = Circle(Point(self.position[0]+18, self.position[1]+18), 8)

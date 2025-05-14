@@ -1,4 +1,15 @@
-# File containing helper functions and some settings
+'''
+Criado por:
+    - Duarte Sousa (ist1113879)
+    - Fábio Silva (ist1114303)
+
+    - Grupo 46
+
+'''
+###
+### File containing helper functions and some settings
+###
+
 import os
 from math import sqrt
 

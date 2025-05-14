@@ -1,3 +1,15 @@
+'''
+Criado por:
+    - Duarte Sousa (ist1113879)
+    - Fábio Silva (ist1114303)
+
+    - Grupo 46
+
+'''
+###
+### File containing Dock class for the charging station and the plate delivery
+###
+
 from src.packages.graphics import *
 
 class Dock(Rectangle):
@@ -9,6 +21,3 @@ class Dock(Rectangle):
         self.setFill(color_rgb(210, 180, 140))
 
         self.draw(win)
-
-    # def __iter__(self):
-    #     return [self]

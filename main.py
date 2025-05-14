@@ -6,6 +6,10 @@ Criado por:
     - Grupo 46
 
 '''
+###
+### File containing main code
+###
+
 from src.packages.graphics import *
 from table import Table
 from obstacle import Wall, Obstacle

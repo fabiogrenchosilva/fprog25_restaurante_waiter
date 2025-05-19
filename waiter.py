@@ -65,6 +65,26 @@ class Waiter(Circle):
     def add_operations(self, operation) -> None:
         self.operation_queue.extend(operation)
 
+    def run_operations(self, operations: list) -> None:
+        operation_path = []
+        origin = self.position
+        print(origin)
+
+        while operations:
+            #print(operations[0].location)
+            next_point = min(operations, key=lambda p: distance_p2p(p.location, origin)[2])
+            operation_path.append(next_point)
+            operations.remove(next_point)
+            origin = next_point.location
+        
+        #print(operation_path)
+        self.add_operations(operation_path)
+
+
+        
+        
+        
+
     def __find_point(self, point: tuple) -> tuple:
         
         point = win_to_grid_coords(point)
@@ -96,7 +116,7 @@ class Waiter(Circle):
 
         self.move(dx, dy)
         self.battery_indicator.move(dx, dy)
-        self.battery_level -= 0.005
+        self.battery_level -= 0.001
 
         self.position = point
         self.grid_position = win_to_grid_coords(point)
@@ -189,16 +209,25 @@ class Waiter(Circle):
                 self.operation_queue.pop(0)
         
         # Battery level
-        if self.battery_level <= 0.2 and not self.needs_battery:
-            self.battery_indicator.setFill(color_rgb(255, 0, 0))  
-            self.operation_queue.insert(1, MoveOperation(self.charging_station_location))
-            self.operation_queue.insert(2, WaitOperation(2, charging=True))    
-            self.needs_battery = True  
+        if not self.needs_battery:
+            if self.battery_level <= 0.3: #and not self.needs_battery:
+                self.battery_indicator.setFill(color_rgb(255, 0, 0))  
+                # self.operation_queue.insert(1, MoveOperation(self.charging_station_location))
+                # self.operation_queue.insert(2, WaitOperation(2, charging=True))    
+                # self.needs_battery = True  
             
-        elif self.battery_level <= 0.5:
-            self.battery_indicator.setFill(color_rgb(255, 255, 0))
-        elif self.battery_level <= 1:
-            self.battery_indicator.setFill(color_rgb(0, 255, 0))
+            elif self.battery_level <= 0.3:
+                self.battery_indicator.setFill(color_rgb(255, 0, 0))  
+                
+            elif self.battery_level <= 0.6:
+                self.battery_indicator.setFill(color_rgb(255, 255, 0))
+                self.operation_queue.insert(2, MoveOperation(self.charging_station_location))
+                self.operation_queue.insert(3, WaitOperation(2, charging=True))    
+                self.needs_battery = True  
+
+            elif self.battery_level <= 1:
+                self.battery_indicator.setFill(color_rgb(0, 255, 0))
+        
 
 class MoveOperation:
     """ Class for a operation about moving the waiter """
@@ -235,6 +264,9 @@ class WaitOperation:
         " Operation update function "
         if not self.waiter:
             self.waiter = waiter
+        
+        if self.charging:
+            self.waiter.battery_indicator.setFill('blue')
 
         self.duration -= dt
         return self.duration <= 0
@@ -243,6 +275,7 @@ class WaitOperation:
         if self.charging:
             self.waiter.battery_level = 1
             self.waiter.needs_battery = False
+
 
 class DeliveryOperation:
     """ Class for a operation about delivering to a specif table  """

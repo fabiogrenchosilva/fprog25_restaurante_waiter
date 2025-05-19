@@ -12,6 +12,7 @@ Criado por:
 
 import os
 from math import sqrt
+from src.packages.graphics import Rectangle, Point, GraphWin, Text
 
 def load_configs(filepath: str) -> None:
     """ Helper function to load configurarions of the room file """
@@ -58,6 +59,27 @@ def distance_p2p(p1: tuple, p2: tuple) -> tuple:
     x_diff = p1[0] - p2[0]
     y_diff = p1[1] - p2[1]
     return (x_diff, y_diff, sqrt(x_diff**2 + y_diff**2))
+
+
+class Button(Rectangle):
+    def __init__(self, win: GraphWin, p1: tuple, p2: tuple, text: str) -> None:
+        super().__init__(Point(*p1), Point(*p2))
+
+        self.setFill('blue')
+        self.setWidth(0)
+
+        self.draw(win)
+        self.text = Text(self.getCenter(), text).draw(win)
+    
+    def check_colision(self, point: tuple) -> None:
+        p1 = self.getP1()
+        p2 = self.getP2()
+
+        if p1.x <= point[0] <= p2.x and p1.y <= point[1] <= p2.y:
+            return True
+        return False
+
+        
 
 # Load configurations when this file is imported
 load_configs("src/salas/sala01.txt")

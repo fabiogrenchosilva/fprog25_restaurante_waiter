@@ -14,14 +14,15 @@ from src.packages.graphics import *
 from table import Table
 from obstacle import Wall, Obstacle
 from dock import Dock
-from waiter import Waiter, DeliveryOperation
-from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords
+from waiter import Waiter, DeliveryOperation, MoveOperation
+from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, Button
 import time, os
 
 
 class Window(GraphWin):
     def __init__(self):
         GraphWin.__init__(self, "FProg", os.environ.get("WIN_WIDTH"), os.environ.get("WIN_HEIGHT"))
+        self.setBackground('white')
 
         # Load/generate static objects
         self.tables: Table = []
@@ -36,12 +37,16 @@ class Window(GraphWin):
         self.__load_file("src/salas/sala01.txt")
 
         # Load waiter class
-        self.waiter = Waiter(self, self.restaurant_grid, self.charging_station_location, self.plates_location)
+        self.waiter: Waiter = Waiter(self, self.restaurant_grid, self.charging_station_location, self.plates_location)
         self.__update_grid()
 
         # Debug mode
         self.debug_mode = False
         self.debug_elements = []
+
+        self.button = Button(self, (0, 0), (100, 40), "Add delivery")
+        self.add_delivery_mode = False
+        self.operation_queue = []
         
     
     def __update_grid(self):
@@ -130,9 +135,15 @@ class Window(GraphWin):
             return
         
         for table in self.tables:
-            if table.clicked((clicked_point.x, clicked_point.y)):
-                self.waiter.add_operations([DeliveryOperation((clicked_point.x, clicked_point.y), table=table)])
+            if table.clicked((clicked_point.x, clicked_point.y)) and self.add_delivery_mode:
+                self.operation_queue.append(MoveOperation((clicked_point.x, clicked_point.y), table=table))
                 return
+            
+        if self.button.check_colision((clicked_point.x, clicked_point.y)):
+            self.add_delivery_mode ^= 1
+            if not self.add_delivery_mode:
+                self.waiter.run_operations(self.operation_queue)
+            return
             
         self.obstacles.append(Obstacle(self, (clicked_point.x-10, clicked_point.y-10), (clicked_point.x+10, clicked_point.y+10), duration=3))
         self.__update_grid()
@@ -156,6 +167,16 @@ class Window(GraphWin):
                 dt = current_time - last_time
                 last_time = current_time
                 ####################
+
+
+                ####################
+                ## Delivery mode ###
+                ####################
+                if self.add_delivery_mode:
+                    self.setBackground('black')
+                else:
+                    self.setBackground('white')
+
 
                 self.__click_handler()
                 self.__key_handler()

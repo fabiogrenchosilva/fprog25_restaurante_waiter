@@ -44,7 +44,7 @@ class Window(GraphWin):
         self.debug_mode = False
         self.debug_elements = []
 
-        self.button = Button(self, (0, 0), (100, 40), "Add delivery")
+        self.button = Button(self, (10, 10), (110, 50), "Add delivery")
         self.add_delivery_mode = False
         self.operation_queue = []
         
@@ -135,14 +135,22 @@ class Window(GraphWin):
             return
         
         for table in self.tables:
-            if table.clicked((clicked_point.x, clicked_point.y)) and self.add_delivery_mode:
-                self.operation_queue.append(MoveOperation((clicked_point.x, clicked_point.y), table=table))
-                return
+            if table.clicked((clicked_point.x, clicked_point.y)):
+                if self.add_delivery_mode:
+                    table.highlight()
+                    self.operation_queue.append((clicked_point.x, clicked_point.y, table))
+                    return
+                else:
+                    return
             
-        if self.button.check_colision((clicked_point.x, clicked_point.y)):
+        if self.button.check_colision((clicked_point.x, clicked_point.y)) and not self.waiter.operation_queue:
             self.add_delivery_mode ^= 1
+            self.button.highlight(self.add_delivery_mode)
             if not self.add_delivery_mode:
                 self.waiter.run_operations(self.operation_queue)
+            return
+        
+        elif self.button.check_colision((clicked_point.x, clicked_point.y)):
             return
             
         self.obstacles.append(Obstacle(self, (clicked_point.x-10, clicked_point.y-10), (clicked_point.x+10, clicked_point.y+10), duration=3))
@@ -167,16 +175,6 @@ class Window(GraphWin):
                 dt = current_time - last_time
                 last_time = current_time
                 ####################
-
-
-                ####################
-                ## Delivery mode ###
-                ####################
-                if self.add_delivery_mode:
-                    self.setBackground('black')
-                else:
-                    self.setBackground('white')
-
 
                 self.__click_handler()
                 self.__key_handler()
@@ -210,5 +208,3 @@ def main():
 
 if __name__=='__main__':
     main()
-
-

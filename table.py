@@ -29,10 +29,12 @@ class Table(Rectangle):
         p2 = self.getP2()
 
         if p1.x <= point[0] <= p2.x and p1.y <= point[1] <= p2.y:
-            self.setWidth(5)
-            self.setFill(color_rgb(50, 50, 225))
             return True
         return False
+    
+    def highlight(self):
+        self.setWidth(5)
+        self.setFill(color_rgb(50, 50, 225))
 
     def dehighlight(self):
         " Dehighlight self "

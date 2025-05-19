@@ -12,6 +12,8 @@ from table import Table
 from utils import relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, distance_p2p
 from collections import deque
 import os
+from copy import deepcopy
+
 
 class Waiter(Circle):
     def __init__(self, win: GraphWin, grid, charging_station_location: tuple, plates_station_location: tuple) -> None:
@@ -60,7 +62,10 @@ class Waiter(Circle):
             end = self.__find_point(point)
         
         path = self.__bfs(self.grid, self.grid_position, end)
-        self.pos_to_go = path
+        if len(path) > 1:
+            self.pos_to_go = path
+            return True
+
 
     def add_operations(self, operation) -> None:
         self.operation_queue.extend(operation)
@@ -68,21 +73,18 @@ class Waiter(Circle):
     def run_operations(self, operations: list) -> None:
         operation_path = []
         origin = self.position
-        print(origin)
 
         while operations:
-            #print(operations[0].location)
-            next_point = min(operations, key=lambda p: distance_p2p(p.location, origin)[2])
-            operation_path.append(next_point)
+            next_point = min(operations, key=lambda p: distance_p2p((p[0], p[1]), origin)[2])
+            x, y, table = next_point
+            operation_path.append(DeliveryOperation((x, y), table=table))
             operations.remove(next_point)
-            origin = next_point.location
+            origin = (x, y)
         
-        #print(operation_path)
-        self.add_operations(operation_path)
-
-
-        
-        
+        self.add_operations(operation_path) 
+        self.add_operations([DeliveryOperation(self.plates_station_location, table=True)])
+        operation_path.reverse()
+        self.add_operations(deepcopy(operation_path)) 
         
 
     def __find_point(self, point: tuple) -> tuple:
@@ -116,7 +118,7 @@ class Waiter(Circle):
 
         self.move(dx, dy)
         self.battery_indicator.move(dx, dy)
-        self.battery_level -= 0.001
+        self.battery_level -= 0.002
 
         self.position = point
         self.grid_position = win_to_grid_coords(point)
@@ -194,14 +196,15 @@ class Waiter(Circle):
             # Drawing all debug elements
             for element in self.__debug_elements:
                 element.draw(self.win)
-            
-        return path
+        
+        return path 
     
     def update(self, dt) -> None:
         # Update the operation queue
         if self.operation_queue:
             # Select the first element of the queue
             current_operation = self.operation_queue[0]
+            # print(current_operation)
 
             # Update the current operation and check if it's done
             if current_operation.update(self, dt=dt):
@@ -212,18 +215,12 @@ class Waiter(Circle):
         if not self.needs_battery:
             if self.battery_level <= 0.3: #and not self.needs_battery:
                 self.battery_indicator.setFill(color_rgb(255, 0, 0))  
-                # self.operation_queue.insert(1, MoveOperation(self.charging_station_location))
-                # self.operation_queue.insert(2, WaitOperation(2, charging=True))    
-                # self.needs_battery = True  
-            
-            elif self.battery_level <= 0.3:
-                self.battery_indicator.setFill(color_rgb(255, 0, 0))  
+                self.operation_queue.insert(1, MoveOperation(self.charging_station_location))
+                self.operation_queue.insert(2, WaitOperation(2, charging=True))    
+                self.needs_battery = True  
                 
             elif self.battery_level <= 0.6:
                 self.battery_indicator.setFill(color_rgb(255, 255, 0))
-                self.operation_queue.insert(2, MoveOperation(self.charging_station_location))
-                self.operation_queue.insert(3, WaitOperation(2, charging=True))    
-                self.needs_battery = True  
 
             elif self.battery_level <= 1:
                 self.battery_indicator.setFill(color_rgb(0, 255, 0))
@@ -238,20 +235,20 @@ class MoveOperation:
     
     def update(self, waiter: Waiter = None, dt: float = 0) -> bool:
         " Operation update function "
-        if not self.started:
-            waiter.move_to(self.location, self.table)
+        if not self.started and waiter.move_to(self.location, self.table):
             self.started = True
 
-        if waiter.pos_to_go:
+        if waiter.pos_to_go and self.started:
             waiter._move_to_point(waiter.pos_to_go[0])
             waiter.pos_to_go.pop(0)
             return False
-        else: 
+        elif self.started: 
             return True
     
     def __del__(self):
         if isinstance(self.table, Table):
             self.table.dehighlight()
+
 
 class WaitOperation:
     """ Class for a operation for waiting x seconds or charging the waiter"""
@@ -280,14 +277,13 @@ class WaitOperation:
 class DeliveryOperation:
     """ Class for a operation about delivering to a specif table  """
     def __init__(self, location: tuple, table: Table = None):
+        self.location = location
+        self.table = table
+
         # List of hardcoded operations
         self.operation_list = [
-            MoveOperation(location, table=True),   # Move to the selected table
+            MoveOperation(location, table=table),   # Move to the selected table
             WaitOperation(2),                      # Wait 2 seconds on the table
-            MoveOperation((500, 40), table=True),  # Move to the plates dock
-            WaitOperation(2),                      # Wait another 2 seconds
-            MoveOperation(location, table=table),  # Deliver the plate to the table
-            WaitOperation(2)                       # Wait another 2 seconds
         ]
     
     def update(self, waiter: Waiter = None, dt: float = 0) -> bool:
@@ -301,3 +297,7 @@ class DeliveryOperation:
             return False
         else:
             return True
+    
+    def __deepcopy__(self, memo):
+        new_operation = DeliveryOperation(self.location, table=self.table)
+        return new_operation

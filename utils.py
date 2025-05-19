@@ -69,7 +69,9 @@ class Button(Rectangle):
         self.setWidth(0)
 
         self.draw(win)
-        self.text = Text(self.getCenter(), text).draw(win)
+        self.text = Text(self.getCenter(), text)
+        self.text.setTextColor('white')
+        self.text.draw(win)
     
     def check_colision(self, point: tuple) -> None:
         p1 = self.getP1()
@@ -78,6 +80,12 @@ class Button(Rectangle):
         if p1.x <= point[0] <= p2.x and p1.y <= point[1] <= p2.y:
             return True
         return False
+    
+    def highlight(self, mode: bool):
+        if mode:
+            self.setFill('lightblue')
+        else:
+            self.setFill('blue')
 
         
 

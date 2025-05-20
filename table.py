@@ -11,16 +11,20 @@ Criado por:
 ###
 
 from src.packages.graphics import *
+from utils import generate_texture
 
 class Table(Rectangle):
     " Class for each table in the screen "
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple):
         Rectangle.__init__(self, Point(*p1), Point(*p2))
+
+        texture = generate_texture("wood_texture", p1, p2)
+        texture.draw(win)
         
         # Render with specifc properties
         self.setWidth(0)
         self.setFill(color_rgb(25, 25, 225))
-        self.draw(win)
+        #self.draw(win)
     
     def clicked(self, point: tuple) -> bool:
         " Check if the screen click it's on self, if True highlight the table  "

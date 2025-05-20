@@ -11,15 +11,13 @@ Criado por:
 ###
 
 from src.packages.graphics import *
+from texture import Texture
+from utils import generate_texture
 
-class Wall(Rectangle):
+class Wall(Texture):
     """ Simple wall to act as a obstacle and dividir between tables """
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple):
-        Rectangle.__init__(self, Point(p1[0], p1[1]), Point(p2[0], p2[1]))
-
-        # Render with specifc properties
-        self.setWidth(0)
-        self.setFill(color_rgb(210, 180, 140))
+        Texture.__init__(self, "dark_rock", p1, p2)
         self.draw(win)
 
 class Obstacle(Rectangle):

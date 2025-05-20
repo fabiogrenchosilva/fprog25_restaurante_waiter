@@ -15,7 +15,7 @@ from table import Table
 from obstacle import Wall, Obstacle
 from dock import Dock
 from waiter import Waiter, DeliveryOperation, MoveOperation
-from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, Button
+from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, Button, generate_texture
 import time, os
 
 
@@ -23,6 +23,8 @@ class Window(GraphWin):
     def __init__(self):
         GraphWin.__init__(self, "FProg", os.environ.get("WIN_WIDTH"), os.environ.get("WIN_HEIGHT"))
         self.setBackground('white')
+        texture = generate_texture("marble2", (0, 0), (1000, 800))
+        texture.draw(self)
 
         # Load/generate static objects
         self.tables: Table = []

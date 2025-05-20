@@ -9,17 +9,26 @@ Criado por:
 
 from src.packages.graphics import *
 from table import Table
-from utils import relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, distance_p2p
+from texture import Texture
+from utils import relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, distance_p2p, generate_texture
 from collections import deque
 import os
 from copy import deepcopy
 
 
-class Waiter(Circle):
+class Waiter(Texture):
     def __init__(self, win: GraphWin, grid, charging_station_location: tuple, plates_station_location: tuple) -> None:
         self.position = relative_to_window_coords((float(os.environ.get("WAITER_INIT_POS_X")), float(os.environ.get("WAITER_INIT_POS_Y"))))
 
-        Circle.__init__(self, Point(*self.position), int(os.environ.get("WAITER_RADIUS")))
+        # Circle.__init__(self, Point(*self.position), int(os.environ.get("WAITER_RADIUS")))
+        p1 = (self.position[0]-25, self.position[1]-25)
+        p2 = (self.position[0]+25, self.position[1]+25)
+        Texture.__init__(self, "wall-e", p1, p2)
+
+        # p1 = (self.position[0]-25, self.position[1]-25)
+        # p2 = (self.position[0]+25, self.position[1]+25)
+        # self.texture = generate_texture("burger_king_guy", p1, p2)
+        # self.texture.draw(win)
 
         self.win = win
         
@@ -48,8 +57,8 @@ class Waiter(Circle):
         self.__debug_elements = []
 
         # Setting render proprieties and drawing them to the screen
-        self.setWidth(1)
-        self.setFill(color_rgb(255, 0, 0))
+        # self.setWidth(1)
+        # self.setFill(color_rgb(255, 0, 0))
         self.draw(win)
         self.battery_indicator.draw(win)
         
@@ -85,6 +94,7 @@ class Waiter(Circle):
         self.add_operations([DeliveryOperation(self.plates_station_location, table=True)])
         operation_path.reverse()
         self.add_operations(deepcopy(operation_path)) 
+        self.add_operations([MoveOperation(self.charging_station_location)])
         
 
     def __find_point(self, point: tuple) -> tuple:

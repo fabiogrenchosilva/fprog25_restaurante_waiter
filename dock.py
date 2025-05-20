@@ -11,13 +11,18 @@ Criado por:
 ###
 
 from src.packages.graphics import *
+from texture import Texture
+from utils import generate_texture
 
-class Dock(Rectangle):
+class Dock(Texture):
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple):
-        Rectangle.__init__(self, Point(p1[0], p1[1]), Point(p2[0], p2[1]))
-        self.win = win
+        Texture.__init__(self, "wood_texture", p1, p2)
+        # self.win = win
 
-        self.setWidth(1)
-        self.setFill(color_rgb(210, 180, 140))
+        # texture = generate_texture("marble", p1, p2)
+        # texture.draw(win)
+
+        # self.setWidth(10)
+        # self.setFill(color_rgb(210, 180, 140))
 
         self.draw(win)

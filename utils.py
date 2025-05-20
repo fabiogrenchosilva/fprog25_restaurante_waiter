@@ -12,7 +12,7 @@ Criado por:
 
 import os
 from math import sqrt
-from src.packages.graphics import Rectangle, Point, GraphWin, Text
+from src.packages.graphics import Rectangle, Point, GraphWin, Text, Image, color_rgb
 
 def load_configs(filepath: str) -> None:
     """ Helper function to load configurarions of the room file """
@@ -61,6 +61,11 @@ def distance_p2p(p1: tuple, p2: tuple) -> tuple:
     return (x_diff, y_diff, sqrt(x_diff**2 + y_diff**2))
 
 
+def generate_empty_array(width: int, height: int) -> list:
+    """ Returns a all zeros 2D list (width x height) """
+    return [[0 for _ in range(width)] for _ in range(height)]
+
+
 class Button(Rectangle):
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple, text: str) -> None:
         super().__init__(Point(*p1), Point(*p2))
@@ -87,7 +92,57 @@ class Button(Rectangle):
         else:
             self.setFill('blue')
 
-        
+
+def resize_image_nearest(image, new_width, new_height):
+    old_height = len(image)
+    old_width = len(image[0])
+
+    # Create a new image (empty list)
+    resized = [
+        [None for _ in range(new_width)]
+        for _ in range(new_height)
+    ]
+
+    for y in range(new_height):
+        for x in range(new_width):
+            # Map (x, y) in resized image to (src_x, src_y) in original
+            src_x = int(x * old_width / new_width)
+            src_y = int(y * old_height / new_height)
+            resized[y][x] = image[src_y][src_x]
+
+    return resized
+
+
+def generate_texture(texture_name: str, p1: tuple, p2: tuple) -> Image:
+    """ Returns a Image with the giving texture and coords """
+
+    # Load original texture
+    original_texture = Image(Point(0, 0), f"src/textures/{texture_name}.ppm")
+    width, height = original_texture.getWidth(), original_texture.getHeight()
+
+    # All empty array
+    texture_array = generate_empty_array(width, height)
+
+    # Copy every pixel from the original texture
+    for i in range(height):
+        for j in range(width):
+            texture_array[i][j] = original_texture.getPixel(j, i)
+    
+    resized_width, resized_height = (abs(int(p1[0]-p2[0])), abs(int(p1[1]-p2[1])))
+
+    resized_texture = Image(Point(0, 0), resized_width, resized_height)
+    resized_texture_array = resize_image_nearest(texture_array, resized_width, resized_height)
+
+    for i in range(resized_width):
+        for j in range(resized_height):
+            r, g, b = resized_texture_array[j][i]
+            color = color_rgb(r, g, b)
+            resized_texture.setPixel(i, j, color)
+    
+    resized_texture.move(p1[0]+resized_width/2, p1[1]+resized_height/2)
+
+    return resized_texture
+
 
 # Load configurations when this file is imported
 load_configs("src/salas/sala01.txt")

@@ -12,7 +12,6 @@ Criado por:
 
 from src.packages.graphics import *
 from texture import Texture
-from utils import generate_texture
 
 class Wall(Texture):
     """ Simple wall to act as a obstacle and dividir between tables """
@@ -20,16 +19,16 @@ class Wall(Texture):
         Texture.__init__(self, "dark_rock", p1, p2)
         self.draw(win)
 
-class Obstacle(Rectangle):
+class Obstacle(Texture):
     """ User added obstacle """
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple, duration: float):
-        Rectangle.__init__(self, Point(p1[0], p1[1]), Point(p2[0], p2[1]))
+        Texture.__init__(self, "wet_floor_sign", p1, p2)
 
         self.duration = duration
 
         # Render with specifc properties
-        self.setWidth(0)
-        self.setFill(color_rgb(100, 255, 140))
+        # self.setWidth(0)
+        # self.setFill(color_rgb(100, 255, 140))
         self.draw(win)
     
     def update(self, dt: float) -> bool:

@@ -10,7 +10,7 @@ Criado por:
 from src.packages.graphics import *
 from table import Table
 from texture import Texture
-from utils import relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, distance_p2p, generate_texture
+from utils import relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, distance_p2p
 from collections import deque
 import os
 from copy import deepcopy
@@ -24,11 +24,6 @@ class Waiter(Texture):
         p1 = (self.position[0]-25, self.position[1]-25)
         p2 = (self.position[0]+25, self.position[1]+25)
         Texture.__init__(self, "wall-e", p1, p2)
-
-        # p1 = (self.position[0]-25, self.position[1]-25)
-        # p2 = (self.position[0]+25, self.position[1]+25)
-        # self.texture = generate_texture("burger_king_guy", p1, p2)
-        # self.texture.draw(win)
 
         self.win = win
         
@@ -56,9 +51,6 @@ class Waiter(Texture):
         self.debug_mode = False
         self.__debug_elements = []
 
-        # Setting render proprieties and drawing them to the screen
-        # self.setWidth(1)
-        # self.setFill(color_rgb(255, 0, 0))
         self.draw(win)
         self.battery_indicator.draw(win)
         
@@ -70,6 +62,10 @@ class Waiter(Texture):
         if table:
             end = self.__find_point(point)
         
+        if self.position[0] == point[0] and self.position[1] == point[1]:
+            self.pos_to_go = [self.position]
+            return True
+        
         path = self.__bfs(self.grid, self.grid_position, end)
         if len(path) > 1:
             self.pos_to_go = path
@@ -77,9 +73,11 @@ class Waiter(Texture):
 
 
     def add_operations(self, operation) -> None:
+        """ Add an operation to the queue"""
         self.operation_queue.extend(operation)
 
     def run_operations(self, operations: list) -> None:
+        """ Run operations """
         operation_path = []
         origin = self.position
 
@@ -94,11 +92,11 @@ class Waiter(Texture):
         self.add_operations([DeliveryOperation(self.plates_station_location, table=True)])
         operation_path.reverse()
         self.add_operations(deepcopy(operation_path)) 
-        self.add_operations([MoveOperation(self.charging_station_location)])
+        self.add_operations([MoveOperation(self.charging_station_location), WaitOperation(2, charging=True)])
         
 
     def __find_point(self, point: tuple) -> tuple:
-        
+        """ Find the location to go when clicking on a Table """
         point = win_to_grid_coords(point)
 
         # Directions for the path finding algorithm, in this case left, right, up, down, left-up, right-up, left-down and right-down
@@ -121,6 +119,7 @@ class Waiter(Texture):
         return point_finded
     
     def _move_to_point(self, point: tuple) -> None:
+        """ Actual move function """
         point = grid_to_win_coords(point)
         
         dx = point[0] - self.position[0] 
@@ -210,11 +209,11 @@ class Waiter(Texture):
         return path 
     
     def update(self, dt) -> None:
+        """ Waiter update function """
         # Update the operation queue
         if self.operation_queue:
             # Select the first element of the queue
             current_operation = self.operation_queue[0]
-            # print(current_operation)
 
             # Update the current operation and check if it's done
             if current_operation.update(self, dt=dt):
@@ -242,6 +241,8 @@ class MoveOperation:
         self.location = location
         self.started = False
         self.table = table
+
+        self.__max_duration = 10
     
     def update(self, waiter: Waiter = None, dt: float = 0) -> bool:
         " Operation update function "
@@ -253,6 +254,10 @@ class MoveOperation:
             waiter.pos_to_go.pop(0)
             return False
         elif self.started: 
+            return True
+        
+        self.__max_duration -= dt
+        if self.__max_duration < 0:
             return True
     
     def __del__(self):

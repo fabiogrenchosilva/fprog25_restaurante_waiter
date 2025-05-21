@@ -11,22 +11,22 @@ Criado por:
 ###
 
 from src.packages.graphics import *
-from utils import generate_texture
+from texture import Texture
 
-class Table(Rectangle):
+class Table(Texture):
     " Class for each table in the screen "
-    def __init__(self, win: GraphWin, p1: tuple, p2: tuple):
-        Rectangle.__init__(self, Point(*p1), Point(*p2))
+    def __init__(self, win: GraphWin, p1: tuple, p2: tuple) -> None:
+        Texture.__init__(self, "wood_texture", p1, p2)
 
-        texture = generate_texture("wood_texture", p1, p2)
-        texture.draw(win)
-        
-        # Render with specifc properties
-        self.setWidth(0)
-        self.setFill(color_rgb(25, 25, 225))
-        #self.draw(win)
+        self.win = win
+
+        self.visual = Circle(Point(*p1), 10)
+        self.visual.setWidth(0)
+        self.visual.setFill(color_rgb(0, 255, 0))
+
+        self.draw(win)
     
-    def clicked(self, point: tuple) -> bool:
+    def handle_click(self, point: tuple) -> bool:
         " Check if the screen click it's on self, if True highlight the table  "
 
         p1 = self.getP1()
@@ -36,12 +36,12 @@ class Table(Rectangle):
             return True
         return False
     
-    def highlight(self):
-        self.setWidth(5)
-        self.setFill(color_rgb(50, 50, 225))
+    def highlight(self) -> None:
+        try:
+            self.visual.draw(self.win)
+        except:
+            pass
 
-    def dehighlight(self):
+    def dehighlight(self) -> None:
         " Dehighlight self "
-
-        self.setWidth(0)
-        self.setFill(color_rgb(25, 25, 225))
+        self.visual.undraw()

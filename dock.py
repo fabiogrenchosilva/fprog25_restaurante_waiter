@@ -12,17 +12,15 @@ Criado por:
 
 from src.packages.graphics import *
 from texture import Texture
-from utils import generate_texture
 
 class Dock(Texture):
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple):
-        Texture.__init__(self, "wood_texture", p1, p2)
-        # self.win = win
+        super().__init__("roomba_dock", p1, p2)
 
-        # texture = generate_texture("marble", p1, p2)
-        # texture.draw(win)
+        self.draw(win)
 
-        # self.setWidth(10)
-        # self.setFill(color_rgb(210, 180, 140))
+class Plates(Texture):
+    def __init__(self, win: GraphWin, p1: tuple, p2: tuple):
+        super().__init__("dark_rock", p1, p2)
 
         self.draw(win)

@@ -13,17 +13,17 @@ Criado por:
 from src.packages.graphics import *
 from table import Table
 from obstacle import Wall, Obstacle
-from dock import Dock
+from dock import Dock, Plates
 from waiter import Waiter, DeliveryOperation, MoveOperation
-from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, Button, generate_texture
+from texture import Texture
+from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, Button, Dropdown
 import time, os
 
 
 class Window(GraphWin):
     def __init__(self):
         GraphWin.__init__(self, "FProg", os.environ.get("WIN_WIDTH"), os.environ.get("WIN_HEIGHT"))
-        self.setBackground('white')
-        texture = generate_texture("marble2", (0, 0), (1000, 800))
+        texture = Texture("marble", (0, 0), (1000, 800))
         texture.draw(self)
 
         # Load/generate static objects
@@ -46,9 +46,17 @@ class Window(GraphWin):
         self.debug_mode = False
         self.debug_elements = []
 
-        self.button = Button(self, (10, 10), (110, 50), "Add delivery")
+        self.add_delivery_button = Button(self, relative_to_window_coords((0.01, 0.01)), relative_to_window_coords((0.11, 0.05)), "Add delivery")
         self.add_delivery_mode = False
         self.operation_queue = []
+
+        self.dropdown_button = Dropdown(self, relative_to_window_coords((0.89, 0.01)), relative_to_window_coords((0.99, 0.05)), "Authors", [
+            'Fundamentos de Programação\n',
+            'Realizado por:',
+            '   Duarte Sousa ist1113879',
+            '   Fábio Silva ist1114303',
+            'Ano letivo 2024-2025'
+        ])
         
     
     def __update_grid(self):
@@ -57,7 +65,10 @@ class Window(GraphWin):
 
             for i in range(point_1[0], point_2[0]+1):
                 for j in range(point_1[1], point_2[1]+1):
-                    self.restaurant_grid[i][j] = 1
+                    try:
+                        self.restaurant_grid[i][j] = 1
+                    except:
+                        pass
 
         self.restaurant_grid = [[0 for _ in range(int(os.environ.get("GRID_WIDTH")))] for _ in range(int(os.environ.get("GRID_HEIGHT")))]
 
@@ -103,7 +114,7 @@ class Window(GraphWin):
                         self.charging_station_location = ((p1[0]+p2[0])/2, (p1[1]+p2[1])/2) # Mean between diagonal points
 
                     case "Plates":
-                        self.plates = Dock(self, p1, p2)
+                        self.plates = Plates(self, p1, p2)
                         # self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
                         self.plates_location = ((p1[0]+p2[0])/2, (p1[1]+p2[1])/2) # Mean between diagonal points
                     
@@ -136,26 +147,33 @@ class Window(GraphWin):
         if not clicked_point:
             return
         
+        # Check which table was chosen
         for table in self.tables:
-            if table.clicked((clicked_point.x, clicked_point.y)):
-                if self.add_delivery_mode:
+            if table.handle_click((clicked_point.x, clicked_point.y)):
+                if self.add_delivery_button.is_active:
                     table.highlight()
                     self.operation_queue.append((clicked_point.x, clicked_point.y, table))
                     return
                 else:
                     return
-            
-        if self.button.check_colision((clicked_point.x, clicked_point.y)) and not self.waiter.operation_queue:
+        
+        # Check delivery button
+        if self.add_delivery_button.handle_click((clicked_point.x, clicked_point.y)) and not self.waiter.operation_queue:
             self.add_delivery_mode ^= 1
-            self.button.highlight(self.add_delivery_mode)
+            self.add_delivery_button.set_active(self.add_delivery_mode)
             if not self.add_delivery_mode:
                 self.waiter.run_operations(self.operation_queue)
             return
         
-        elif self.button.check_colision((clicked_point.x, clicked_point.y)):
+        elif self.add_delivery_button.handle_click((clicked_point.x, clicked_point.y)):
             return
-            
-        self.obstacles.append(Obstacle(self, (clicked_point.x-10, clicked_point.y-10), (clicked_point.x+10, clicked_point.y+10), duration=3))
+        
+        # Check dropdown button
+        if self.dropdown_button.handle_click((clicked_point.x, clicked_point.y)):
+            return
+        
+        # Add a obstacle if not of the above buttons or tables was chosen
+        self.obstacles.append(Obstacle(self, (clicked_point.x-25, clicked_point.y-25), (clicked_point.x+25, clicked_point.y+25), duration=3))
         self.__update_grid()
 
   
@@ -185,7 +203,6 @@ class Window(GraphWin):
                     if obst.update(dt):
                         self.obstacles.pop(0)
                         del obst
-
                 self.__update_grid()
 
 

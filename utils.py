@@ -70,6 +70,8 @@ class Button(Rectangle):
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple, text: str) -> None:
         super().__init__(Point(*p1), Point(*p2))
 
+        self.is_active = False
+
         self.setFill('blue')
         self.setWidth(0)
 
@@ -78,71 +80,62 @@ class Button(Rectangle):
         self.text.setTextColor('white')
         self.text.draw(win)
     
-    def check_colision(self, point: tuple) -> None:
+    def handle_click(self, point: tuple) -> bool:
+        """ Click handler, returns True if button is clicked """
         p1 = self.getP1()
         p2 = self.getP2()
 
         if p1.x <= point[0] <= p2.x and p1.y <= point[1] <= p2.y:
             return True
         return False
+
+    def set_active(self, active: bool) -> None:
+        self.is_active = active
+        self.run_action()
     
-    def highlight(self, mode: bool):
-        if mode:
+    def run_action(self) -> None:
+        if self.is_active:
             self.setFill('lightblue')
         else:
             self.setFill('blue')
 
+class Dropdown(Button):
+    def __init__(self, win: GraphWin, p1: tuple, p2: tuple, text: str, dropdown_text: list[str]) -> None:
+        super().__init__(win, p1, p2, text)
+        
+        self.win = win
+        self.dropdown_text = dropdown_text
 
-def resize_image_nearest(image, new_width, new_height):
-    old_height = len(image)
-    old_width = len(image[0])
-
-    # Create a new image (empty list)
-    resized = [
-        [None for _ in range(new_width)]
-        for _ in range(new_height)
-    ]
-
-    for y in range(new_height):
-        for x in range(new_width):
-            # Map (x, y) in resized image to (src_x, src_y) in original
-            src_x = int(x * old_width / new_width)
-            src_y = int(y * old_height / new_height)
-            resized[y][x] = image[src_y][src_x]
-
-    return resized
-
-
-def generate_texture(texture_name: str, p1: tuple, p2: tuple) -> Image:
-    """ Returns a Image with the giving texture and coords """
-
-    # Load original texture
-    original_texture = Image(Point(0, 0), f"src/textures/{texture_name}.ppm")
-    width, height = original_texture.getWidth(), original_texture.getHeight()
-
-    # All empty array
-    texture_array = generate_empty_array(width, height)
-
-    # Copy every pixel from the original texture
-    for i in range(height):
-        for j in range(width):
-            texture_array[i][j] = original_texture.getPixel(j, i)
+        self.draw_elements = []
     
-    resized_width, resized_height = (abs(int(p1[0]-p2[0])), abs(int(p1[1]-p2[1])))
+    def handle_click(self, point: tuple) -> bool:
+        """ Click handler, returns True if button is clicked """ 
+        if not super().handle_click(point):
+            return False
+        
+        self.is_active ^= 1
+        
+        if self.is_active:
+            y = self.p2.y + 50
+        
+            for line in self.dropdown_text:
+                self.draw_elements.append(Text(Point(self.p1.x-50, y), line))
+                y+=20
+            
+            self.rect = Rectangle(Point(self.p1.x-200, self.p2.y), Point(self.p2.x, y))
+            self.rect.setFill('white')
+            self.rect.draw(self.win)
+            # self.draw_elements.append(rect)
 
-    resized_texture = Image(Point(0, 0), resized_width, resized_height)
-    resized_texture_array = resize_image_nearest(texture_array, resized_width, resized_height)
-
-    for i in range(resized_width):
-        for j in range(resized_height):
-            r, g, b = resized_texture_array[j][i]
-            color = color_rgb(r, g, b)
-            resized_texture.setPixel(i, j, color)
-    
-    resized_texture.move(p1[0]+resized_width/2, p1[1]+resized_height/2)
-
-    return resized_texture
-
+            for element in self.draw_elements:
+                element.draw(self.win)
+   
+        else:
+            self.rect.undraw()
+            for element in self.draw_elements:
+                element.undraw()
+            
+        return True
 
 # Load configurations when this file is imported
 load_configs("src/salas/sala01.txt")

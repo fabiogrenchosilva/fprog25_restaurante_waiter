@@ -1,14 +1,15 @@
 '''
-Criado por:
+
+Group n.º 29
+Elements:
     - Duarte Sousa (ist1113879)
     - Fábio Silva (ist1114303)
 
-    - Grupo 46
+Version 28: 22-05-2025 - 12h42
+
+This file containes the Wall and Obstacle classes implementations
 
 '''
-###
-### File containing Wall and Obstacle classes
-###
 
 from src.packages.graphics import *
 from texture import Texture

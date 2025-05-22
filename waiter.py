@@ -1,9 +1,13 @@
 '''
-Criado por:
+
+Group n.º 29
+Elements:
     - Duarte Sousa (ist1113879)
     - Fábio Silva (ist1114303)
 
-    - Grupo 46
+Version 28: 22-05-2025 - 12h42
+
+This file containes the implementation of the Waiter class and operations classes
 
 '''
 
@@ -17,13 +21,14 @@ from copy import deepcopy
 
 
 class Waiter(Texture):
+    """ Implementation of Waiter class """
     def __init__(self, win: GraphWin, grid, charging_station_location: tuple, plates_station_location: tuple) -> None:
         self.position = relative_to_window_coords((float(os.environ.get("WAITER_INIT_POS_X")), float(os.environ.get("WAITER_INIT_POS_Y"))))
 
         # Circle.__init__(self, Point(*self.position), int(os.environ.get("WAITER_RADIUS")))
         p1 = (self.position[0]-25, self.position[1]-25)
         p2 = (self.position[0]+25, self.position[1]+25)
-        Texture.__init__(self, "wall-e", p1, p2)
+        super().__init__("wall-e", p1, p2)
 
         self.win = win
         
@@ -245,7 +250,7 @@ class MoveOperation:
         self.__max_duration = 10
     
     def update(self, waiter: Waiter = None, dt: float = 0) -> bool:
-        " Operation update function "
+        """ Operation update function """
         if not self.started and waiter.move_to(self.location, self.table):
             self.started = True
 
@@ -261,6 +266,7 @@ class MoveOperation:
             return True
     
     def __del__(self):
+        """ Override delete function of the class """
         if isinstance(self.table, Table):
             self.table.dehighlight()
 
@@ -273,7 +279,7 @@ class WaitOperation:
         self.waiter = None
 
     def update(self, waiter: Waiter = None, dt: float = 0) -> bool:
-        " Operation update function "
+        """ Operation update function """
         if not self.waiter:
             self.waiter = waiter
         
@@ -284,6 +290,7 @@ class WaitOperation:
         return self.duration <= 0
 
     def __del__(self):
+        """ Override delete function of the class """
         if self.charging:
             self.waiter.battery_level = 1
             self.waiter.needs_battery = False
@@ -302,7 +309,7 @@ class DeliveryOperation:
         ]
     
     def update(self, waiter: Waiter = None, dt: float = 0) -> bool:
-        " Operation update function "
+        """ Operation update function """
         if self.operation_list:
             current_operation = self.operation_list[0]
 
@@ -314,5 +321,6 @@ class DeliveryOperation:
             return True
     
     def __deepcopy__(self, memo):
+        """ Deepcopy implementation """
         new_operation = DeliveryOperation(self.location, table=self.table)
         return new_operation

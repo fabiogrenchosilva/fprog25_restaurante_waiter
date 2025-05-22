@@ -1,25 +1,28 @@
 '''
-Criado por:
+
+Group n.º 29
+Elements:
     - Duarte Sousa (ist1113879)
     - Fábio Silva (ist1114303)
 
-    - Grupo 46
+Version 28: 22-05-2025 - 12h42
+
+This file containes the implementation of Dock and Plates classes
 
 '''
-###
-### File containing Dock class for the charging station and the plate delivery
-###
 
 from src.packages.graphics import *
 from texture import Texture
 
 class Dock(Texture):
+    """ Implementation of a charging dock for the waiter class """
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple):
         super().__init__("roomba_dock", p1, p2)
 
         self.draw(win)
 
 class Plates(Texture):
+    """ Implementation of a plates delivery for the waiter class """
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple):
         super().__init__("dark_rock", p1, p2)
 

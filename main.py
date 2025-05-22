@@ -1,26 +1,28 @@
 '''
-Criado por:
+
+Group n.º 29
+Elements:
     - Duarte Sousa (ist1113879)
     - Fábio Silva (ist1114303)
 
-    - Grupo 46
+Version 28: 22-05-2025 - 12h42
+
+This file is the main, implementation of Window class
 
 '''
-###
-### File containing main code
-###
 
 from src.packages.graphics import *
 from table import Table
 from obstacle import Wall, Obstacle
 from dock import Dock, Plates
-from waiter import Waiter, DeliveryOperation, MoveOperation
+from waiter import Waiter
 from texture import Texture
 from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, Button, Dropdown
 import time, os
 
 
 class Window(GraphWin):
+    """ Window class, creates the window and manages all elements drawn """
     def __init__(self):
         GraphWin.__init__(self, "FProg", os.environ.get("WIN_WIDTH"), os.environ.get("WIN_HEIGHT"))
         texture = Texture("marble", (0, 0), (1000, 800))
@@ -60,6 +62,7 @@ class Window(GraphWin):
         
     
     def __update_grid(self):
+        """ Updates bfs grid """
         def __set_grid(p1: tuple, p2: tuple):
             point_1, point_2 = win_to_grid_coords(p1), win_to_grid_coords(p2)
 
@@ -79,8 +82,10 @@ class Window(GraphWin):
                 __set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
         self.waiter.grid = self.restaurant_grid
-        
+
+
     def __load_file(self, ficheiro_sala: str) -> None:
+        """ Loads elements in .txt file """
         file = open(ficheiro_sala, 'r')
 
         for line in file:
@@ -125,6 +130,7 @@ class Window(GraphWin):
 
    
     def __debug_mode(self) -> None:
+        """ Implementation of debug visualization """
         self.debug_mode = not self.debug_mode
         os.environ["DEBUG_MODE"] = str(self.debug_mode)
         print(f"Debug mode was setted to: {self.debug_mode}")
@@ -143,6 +149,7 @@ class Window(GraphWin):
 
 
     def __click_handler(self) -> None:
+        """ Handler for mouse clicks """
         clicked_point = self.checkMouse()
         if not clicked_point:
             return
@@ -178,6 +185,7 @@ class Window(GraphWin):
 
   
     def __key_handler(self) -> None:
+        """ Handler for keyboard input """
         key = self.checkKey()
         if key == "F12":
             print(key)
@@ -185,6 +193,7 @@ class Window(GraphWin):
 
 
     def main_loop(self) -> bool:
+        """ Game loop """
         last_time = time.time()
         while True:
             try:
@@ -220,10 +229,11 @@ class Window(GraphWin):
 
 
 def main():
+    
     win = Window()
 
     win.main_loop()
 
-
+# Only runs if this is the file run when "python file.py"
 if __name__=='__main__':
     main()

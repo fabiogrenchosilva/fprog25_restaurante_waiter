@@ -1,14 +1,15 @@
 '''
-Criado por:
+
+Group n.º 29
+Elements:
     - Duarte Sousa (ist1113879)
     - Fábio Silva (ist1114303)
 
-    - Grupo 46
+Version 28: 22-05-2025 - 12h42
+
+This file containes some helper functions and classes
 
 '''
-###
-### File containing helper functions and some settings
-###
 
 import os
 from math import sqrt
@@ -23,6 +24,7 @@ def load_configs(filepath: str) -> None:
         if line.startswith("*"):
             args = line.split(" ")
 
+            # Write to an os variable
             os.environ[args[1]] = args[2]
 
 
@@ -61,12 +63,13 @@ def distance_p2p(p1: tuple, p2: tuple) -> tuple:
     return (x_diff, y_diff, sqrt(x_diff**2 + y_diff**2))
 
 
-def generate_empty_array(width: int, height: int) -> list:
+def generate_empty_array(width: int, height: int) -> list[list[int]]:
     """ Returns a all zeros 2D list (width x height) """
     return [[0 for _ in range(width)] for _ in range(height)]
 
 
 class Button(Rectangle):
+    """ Implementation of a button """
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple, text: str) -> None:
         super().__init__(Point(*p1), Point(*p2))
 
@@ -90,16 +93,19 @@ class Button(Rectangle):
         return False
 
     def set_active(self, active: bool) -> None:
+        """ Sets button's state """
         self.is_active = active
-        self.run_action()
-    
-    def run_action(self) -> None:
+
         if self.is_active:
             self.setFill('lightblue')
         else:
             self.setFill('blue')
+    
 
 class Dropdown(Button):
+    """ Implementation of dropdown """
+    # This implementation could easily be converted to an actual dropdown menu, 
+    # but the for the purpose of this application it would not be considered
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple, text: str, dropdown_text: list[str]) -> None:
         super().__init__(win, p1, p2, text)
         
@@ -125,7 +131,6 @@ class Dropdown(Button):
             self.rect = Rectangle(Point(self.p1.x-200, self.p2.y), Point(self.p2.x, y))
             self.rect.setFill('white')
             self.rect.draw(self.win)
-            # self.draw_elements.append(rect)
 
             for element in self.draw_elements:
                 element.draw(self.win)

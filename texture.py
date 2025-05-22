@@ -1,7 +1,21 @@
-from src.packages.graphics import Image, Point, color_rgb, GraphicsObject
+'''
+
+Group n.º 29
+Elements:
+    - Duarte Sousa (ist1113879)
+    - Fábio Silva (ist1114303)
+
+Version 28: 22-05-2025 - 12h42
+
+This file containes the Texture class implementation
+
+'''
+
+from src.packages.graphics import Image, Point, color_rgb
 from utils import generate_empty_array
 
 class Texture(Image):
+    """ Creates an texture with a .ppm file """
     def __init__(self, texture_filename: str, p1: tuple, p2: tuple) -> Image:
         """ Returns a Image with the giving texture and coords """
         self.p1 = p1
@@ -43,7 +57,9 @@ class Texture(Image):
         self.move(p1[0]+resized_width/2, p1[1]+resized_height/2)
     
     def getP1(self):
+        """ Override getP1 function """
         return Point(*self.p1)
     
     def getP2(self):
+        """ Override getP1 function """
         return Point(*self.p2)

@@ -24,7 +24,7 @@ class Wall(Texture):
 class Obstacle(Texture):
     """ User added obstacle """
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple, duration: float) -> None:
-        Texture.__init__(self, choice(["wet_floor_sign", "mariokart_banana", "marioh_ramlahioh"]), p1, p2)
+        Texture.__init__(self, choice(["wet_floor_sign", "mariokart_banana"]), p1, p2)
 
         self.duration = duration
 

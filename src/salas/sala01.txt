@@ -1,7 +1,14 @@
 # Sala 0.1
-# Grupo 46
+# Group n.º 29
+# Elements:
+#     - Duarte Sousa (ist1113879)
+#     - Fábio Silva (ist1114303)
+# 
+# Version 28: 22-05-2025 - 12h42
+#
+# This file containes some helper functions and classes
 
-# Config
+# Configs
 * WIN_WIDTH 1000
 * WIN_HEIGHT 800
 

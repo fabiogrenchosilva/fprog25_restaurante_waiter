@@ -17,7 +17,7 @@ from texture import Texture
 class Table(Texture):
     """ Class for each table in the screen """
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple) -> None:
-        Texture.__init__(self, "wood_texture", p1, p2)
+        super().__init__("wood_texture", p1, p2)
 
         self.win = win
 

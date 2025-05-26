@@ -43,6 +43,7 @@ class Waiter(Texture):
         # Charging and plates location
         self.charging_station_location = charging_station_location
         self.plates_station_location = plates_station_location
+        self.obstacles = []
 
         # Initializing variables for the path finding algorithm, in this case breath first search
         self.pos_to_go = []
@@ -59,7 +60,6 @@ class Waiter(Texture):
         self.draw(win)
         self.battery_indicator.draw(win)
         
-
     def move_to(self, point: tuple, table=None) -> None:
         """ Function that allows the waiter to go to a specific location or table when isn't None """
         end = win_to_grid_coords(point)
@@ -75,7 +75,6 @@ class Waiter(Texture):
         if len(path) > 1:
             self.pos_to_go = path
             return True
-
 
     def add_operations(self, operation) -> None:
         """ Add an operation to the queue"""
@@ -99,7 +98,6 @@ class Waiter(Texture):
         self.add_operations(deepcopy(operation_path)) 
         self.add_operations([MoveOperation(self.charging_station_location), WaitOperation(2, charging=True)])
         
-
     def __find_point(self, point: tuple) -> tuple:
         """ Find the location to go when clicking on a Table """
         point = win_to_grid_coords(point)
@@ -126,6 +124,14 @@ class Waiter(Texture):
     def _move_to_point(self, point: tuple) -> None:
         """ Actual move function """
         point = grid_to_win_coords(point)
+
+        # Check colision with an obstacle
+        for obstacle in self.obstacles:
+            if obstacle.check_colision(point):
+                time.sleep(3)
+                obstacle.undraw()
+                self.obstacles.remove(obstacle)
+        
         
         dx = point[0] - self.position[0] 
         dy = point[1] - self.position[1]

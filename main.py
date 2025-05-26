@@ -17,7 +17,7 @@ from obstacle import Wall, Obstacle
 from dock import Dock, Plates
 from waiter import Waiter
 from texture import Texture
-from utils import load_configs, relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, Button, Dropdown
+from utils import relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, Button, Dropdown
 import time, os
 
 
@@ -59,6 +59,9 @@ class Window(GraphWin):
             '   Fábio Silva ist1114303',
             'Ano letivo 2024-2025'
         ])
+
+        self.close_button = Button(self, relative_to_window_coords((0.01, .94)), relative_to_window_coords((0.05, .99)), "X")
+        self.close_button.set_action(lambda: exit())
         
     
     def __update_grid(self):
@@ -107,12 +110,10 @@ class Window(GraphWin):
                     case "Table":            
                         table = Table(self, p1, p2)
                         self.tables.append(table)
-                        # self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
                     case "Walls":
                         obstacle = Wall(self, p1, p2)
                         self.walls.append(obstacle)
-                        # self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
 
                     case "Dock":
                         self.charging_dock = Dock(self, p1, p2)
@@ -120,7 +121,6 @@ class Window(GraphWin):
 
                     case "Plates":
                         self.plates = Plates(self, p1, p2)
-                        # self.__set_grid((p1[0]-25, p1[1]-25), (p2[0]+25, p2[1]+25))
                         self.plates_location = ((p1[0]+p2[0])/2, (p1[1]+p2[1])/2) # Mean between diagonal points
                     
                     case _:
@@ -179,9 +179,12 @@ class Window(GraphWin):
         if self.dropdown_button.handle_click((clicked_point.x, clicked_point.y)):
             return
         
+        if self.close_button.handle_click((clicked_point.x, clicked_point.y)):
+            return
+        
         # Add a obstacle if not of the above buttons or tables was chosen
         self.obstacles.append(Obstacle(self, (clicked_point.x-25, clicked_point.y-25), (clicked_point.x+25, clicked_point.y+25), duration=3))
-        self.__update_grid()
+        #self.__update_grid()
 
   
     def __key_handler(self) -> None:
@@ -196,33 +199,25 @@ class Window(GraphWin):
         """ Game loop """
         last_time = time.time()
         while True:
-            try:
-                ####################
-                ## Delta time code #
-                ####################
-                current_time = time.time()
-                dt = current_time - last_time
-                last_time = current_time
-                ####################
+            ####################
+            ## Delta time code #
+            ####################
+            current_time = time.time()
+            dt = current_time - last_time
+            last_time = current_time
+            ####################
 
-                self.__click_handler()
-                self.__key_handler()
+            self.__click_handler()
+            self.__key_handler()
 
-                for obst in self.obstacles:
-                    if obst.update(dt):
-                        self.obstacles.pop(0)
-                        del obst
-                self.__update_grid()
+            self.waiter.obstacles = self.obstacles
+            #self.__update_grid()
 
 
-                self.waiter.update(dt)
-                update(60)
+            self.waiter.update(dt)
+            update(60)
 
-                if self.isClosed():
-                    break
-
-            except GraphicsError as err:
-                print(err)
+            if self.isClosed():
                 break
 
         return True
@@ -234,6 +229,6 @@ def main():
 
     win.main_loop()
 
-# Only runs if this is the file run when "python file.py"
+# Only runs if this file is runned directly
 if __name__=='__main__':
     main()

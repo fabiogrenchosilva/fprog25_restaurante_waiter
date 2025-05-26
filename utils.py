@@ -13,7 +13,7 @@ This file containes some helper functions and classes
 
 import os
 from math import sqrt
-from src.packages.graphics import Rectangle, Point, GraphWin, Text, Image, color_rgb
+from src.packages.graphics import Rectangle, Point, GraphWin, Text
 
 def load_configs(filepath: str) -> None:
     """ Helper function to load configurarions of the room file """
@@ -74,6 +74,7 @@ class Button(Rectangle):
         super().__init__(Point(*p1), Point(*p2))
 
         self.is_active = False
+        self.fuction = lambda: print()
 
         self.setFill('blue')
         self.setWidth(0)
@@ -89,6 +90,7 @@ class Button(Rectangle):
         p2 = self.getP2()
 
         if p1.x <= point[0] <= p2.x and p1.y <= point[1] <= p2.y:
+            self.fuction()
             return True
         return False
 
@@ -100,6 +102,10 @@ class Button(Rectangle):
             self.setFill('lightblue')
         else:
             self.setFill('blue')
+    
+    def set_action(self, function) -> bool:
+        """ Define a function to run when the button is clicked """
+        self.fuction = function
     
 
 class Dropdown(Button):

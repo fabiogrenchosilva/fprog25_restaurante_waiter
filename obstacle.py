@@ -13,6 +13,7 @@ This file containes the Wall and Obstacle classes implementations
 
 from src.packages.graphics import *
 from texture import Texture
+from random import choice
 
 class Wall(Texture):
     """ Simple wall to act as a obstacle and dividir between tables """
@@ -22,16 +23,21 @@ class Wall(Texture):
 
 class Obstacle(Texture):
     """ User added obstacle """
-    def __init__(self, win: GraphWin, p1: tuple, p2: tuple, duration: float):
-        Texture.__init__(self, "wet_floor_sign", p1, p2)
+    def __init__(self, win: GraphWin, p1: tuple, p2: tuple, duration: float) -> None:
+        Texture.__init__(self, choice(["wet_floor_sign", "mariokart_banana", "marioh_ramlahioh"]), p1, p2)
 
         self.duration = duration
 
-        # Render with specifc properties
-        # self.setWidth(0)
-        # self.setFill(color_rgb(100, 255, 140))
         self.draw(win)
     
+    def check_colision(self, point: tuple) -> bool:
+        p1 = self.getP1()
+        p2 = self.getP2()
+
+        if p1.x <= point[0] <= p2.x and p1.y <= point[1] <= p2.y:
+            return True
+        return False
+
     def update(self, dt: float) -> bool:
         """ Update function, serves for undrawing itself """
         self.duration -= dt

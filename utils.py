@@ -90,6 +90,7 @@ class Button(Rectangle):
         p2 = self.getP2()
 
         if p1.x <= point[0] <= p2.x and p1.y <= point[1] <= p2.y:
+            self.is_active ^= 1
             self.fuction()
             return True
         return False
@@ -103,7 +104,7 @@ class Button(Rectangle):
         else:
             self.setFill('blue')
     
-    def set_action(self, function) -> bool:
+    def set_action(self, function) -> None:
         """ Define a function to run when the button is clicked """
         self.fuction = function
     

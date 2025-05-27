@@ -19,12 +19,12 @@ from waiter import Waiter
 from texture import Texture
 from utils import relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, Button, Dropdown
 import time, os
-
+import sys
 
 class Window(GraphWin):
     """ Window class, creates the window and manages all elements drawn """
     def __init__(self):
-        GraphWin.__init__(self, "FProg", os.environ.get("WIN_WIDTH"), os.environ.get("WIN_HEIGHT"))
+        super().__init__("FProg", os.environ.get("WIN_WIDTH"), os.environ.get("WIN_HEIGHT"))
         texture = Texture("marble", (0, 0), (1000, 800))
         texture.draw(self)
 
@@ -61,7 +61,7 @@ class Window(GraphWin):
         ])
 
         self.close_button = Button(self, relative_to_window_coords((0.01, .94)), relative_to_window_coords((0.05, .99)), "X")
-        self.close_button.set_action(lambda: exit())
+        #self.close_button.set_action(lambda: sys.exit())
         
     
     def __update_grid(self):
@@ -217,8 +217,8 @@ class Window(GraphWin):
             self.waiter.update(dt)
             update(60)
 
-            if self.isClosed():
-                break
+            if self.close_button.is_active:
+                return
 
         return True
 
@@ -228,6 +228,8 @@ def main():
     win = Window()
 
     win.main_loop()
+    
+    win.close()
 
 # Only runs if this file is runned directly
 if __name__=='__main__':

@@ -5,7 +5,7 @@ Elements:
     - Duarte Sousa (ist1113879)
     - Fábio Silva (ist1114303)
 
-Version 28: 22-05-2025 - 12h42
+Version 31: 27-05-2025 - 11h35
 
 This file is the main, implementation of Window class
 
@@ -19,7 +19,6 @@ from waiter import Waiter
 from texture import Texture
 from utils import relative_to_window_coords, win_to_grid_coords, grid_to_win_coords, Button, Dropdown
 import time, os
-import sys
 
 class Window(GraphWin):
     """ Window class, creates the window and manages all elements drawn """
@@ -61,8 +60,7 @@ class Window(GraphWin):
         ])
 
         self.close_button = Button(self, relative_to_window_coords((0.01, .94)), relative_to_window_coords((0.05, .99)), "X")
-        #self.close_button.set_action(lambda: sys.exit())
-        
+
     
     def __update_grid(self):
         """ Updates bfs grid """
@@ -154,9 +152,11 @@ class Window(GraphWin):
         if not clicked_point:
             return
         
+        click = (clicked_point.x, clicked_point.y)
+        
         # Check which table was chosen
         for table in self.tables:
-            if table.handle_click((clicked_point.x, clicked_point.y)):
+            if table.handle_click(click):
                 if self.add_delivery_button.is_active:
                     table.highlight()
                     self.operation_queue.append((clicked_point.x, clicked_point.y, table))
@@ -165,26 +165,25 @@ class Window(GraphWin):
                     return
         
         # Check delivery button
-        if self.add_delivery_button.handle_click((clicked_point.x, clicked_point.y)) and not self.waiter.operation_queue:
+        if self.add_delivery_button.handle_click(click) and not self.waiter.operation_queue:
             self.add_delivery_mode ^= 1
             self.add_delivery_button.set_active(self.add_delivery_mode)
             if not self.add_delivery_mode:
                 self.waiter.run_operations(self.operation_queue)
             return
         
-        elif self.add_delivery_button.handle_click((clicked_point.x, clicked_point.y)):
+        elif self.add_delivery_button.handle_click(click):
             return
         
         # Check dropdown button
-        if self.dropdown_button.handle_click((clicked_point.x, clicked_point.y)):
+        if self.dropdown_button.handle_click(click):
             return
         
-        if self.close_button.handle_click((clicked_point.x, clicked_point.y)):
+        if self.close_button.handle_click(click):
             return
         
         # Add a obstacle if not of the above buttons or tables was chosen
         self.obstacles.append(Obstacle(self, (clicked_point.x-25, clicked_point.y-25), (clicked_point.x+25, clicked_point.y+25), duration=3))
-        #self.__update_grid()
 
   
     def __key_handler(self) -> None:
@@ -211,16 +210,12 @@ class Window(GraphWin):
             self.__key_handler()
 
             self.waiter.obstacles = self.obstacles
-            #self.__update_grid()
-
 
             self.waiter.update(dt)
             update(60)
 
             if self.close_button.is_active:
                 return
-
-        return True
 
 
 def main():

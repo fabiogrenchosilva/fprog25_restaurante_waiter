@@ -5,7 +5,7 @@ Elements:
     - Duarte Sousa (ist1113879)
     - Fábio Silva (ist1114303)
 
-Version 28: 22-05-2025 - 12h42
+Version 31: 27-05-2025 - 11h35
 
 This file containes some helper functions and classes
 
@@ -125,8 +125,6 @@ class Dropdown(Button):
         """ Click handler, returns True if button is clicked """ 
         if not super().handle_click(point):
             return False
-        
-        self.is_active ^= 1
         
         if self.is_active:
             y = self.p2.y + 50

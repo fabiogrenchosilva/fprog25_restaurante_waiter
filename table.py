@@ -5,7 +5,7 @@ Elements:
     - Duarte Sousa (ist1113879)
     - Fábio Silva (ist1114303)
 
-Version 28: 22-05-2025 - 12h42
+Version 31: 27-05-2025 - 11h35
 
 This file containes the implementation of Table class
 

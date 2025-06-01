@@ -18,13 +18,13 @@ from random import choice
 class Wall(Texture):
     """ Simple wall to act as a obstacle and dividir between tables """
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple):
-        Texture.__init__(self, "dark_rock", p1, p2)
+        super().__init__("dark_rock", p1, p2)
         self.draw(win)
 
 class Obstacle(Texture):
     """ User added obstacle """
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple, duration: float) -> None:
-        Texture.__init__(self, choice(["wet_floor_sign", "mariokart_banana"]), p1, p2)
+        super().__init__(choice(["wet_floor_sign", "mariokart_banana"]), p1, p2)
 
         self.duration = duration
 

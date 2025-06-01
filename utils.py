@@ -69,12 +69,12 @@ def generate_empty_array(width: int, height: int) -> list[list[int]]:
 
 
 class Button(Rectangle):
-    """ Implementation of a button """
+    """ Implementation of a simple button """
     def __init__(self, win: GraphWin, p1: tuple, p2: tuple, text: str) -> None:
         super().__init__(Point(*p1), Point(*p2))
 
         self.is_active = False
-        self.fuction = lambda: print()
+        self.fuction = lambda: None
 
         self.setFill('blue')
         self.setWidth(0)
@@ -123,7 +123,7 @@ class Dropdown(Button):
     
     def handle_click(self, point: tuple) -> bool:
         """ Click handler, returns True if button is clicked """ 
-        if not super().handle_click(point):
+        if not super().handle_click(point): # super().handle_click calls the Button.handle_click() function
             return False
         
         if self.is_active:

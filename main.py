@@ -138,8 +138,8 @@ class Window(GraphWin):
             del element
 
         if self.debug_mode:
-            for i in range(100):
-                for j in range(100):
+            for i in range(int(os.environ.get("GRID_WIDTH"))):
+                for j in range(int(os.environ.get("GRID_HEIGHT"))):
                     if self.restaurant_grid[i][j] == 1:
                         rect = Rectangle(Point(*grid_to_win_coords((i, j))), Point(*grid_to_win_coords((i+1, j+1))))
                         rect.draw(self)
@@ -219,11 +219,9 @@ class Window(GraphWin):
 
 
 def main():
-    
     win = Window()
 
     win.main_loop()
-    
     win.close()
 
 # Only runs if this file is runned directly

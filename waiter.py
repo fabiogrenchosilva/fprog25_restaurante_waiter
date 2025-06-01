@@ -155,8 +155,9 @@ class Waiter(Texture):
 
         rows, cols = len(grid), len(grid[0])
 
-        visited = [[False for _ in range(100)] for _ in range(100)]
-        parent = [[None for _ in range(100)] for _ in range(100)]
+        # Empty arrays
+        visited = [[False for _ in range(int(os.environ.get("GRID_WIDTH")))] for _ in range(int(os.environ.get("GRID_HEIGHT")))]
+        parent = [[False for _ in range(int(os.environ.get("GRID_WIDTH")))] for _ in range(int(os.environ.get("GRID_HEIGHT")))]
         
         queue = deque()
         queue.append(start)
